@@ -22,20 +22,11 @@ function Login() {
   const [emailErrorMessage, setEmailErrorMessage] = useState('');
   const [passwordError, setPasswordError] = useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = useState('');
-  const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
   const navigate = useNavigate();
-
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-  };
 
   const handleOnChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.currentTarget;
@@ -71,7 +62,7 @@ function Login() {
 
       await authenticateUser(); // this verifies that the token was correctly stored and is valid. Also it updates the context states.
 
-      navigate('/timelines');
+      navigate('/admin/products');
     } catch (error: any) {
       console.log(error);
       if (error.response && error.response.status === 400 ) {

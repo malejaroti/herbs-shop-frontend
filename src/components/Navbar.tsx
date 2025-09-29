@@ -1,13 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link } from 'react-router';
 import { useAuth } from '../context/auth.context';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
 import Button from '@mui/material/Button';
-import defaultAvatar from "../assets/default-avatar.jpg"
-import api from '../services/config.services';
-import type { IUser } from '../types/User';
-
 
 // Styled component for responsive navigation links
 const NavLink = styled(Link)(() => ({
@@ -54,8 +50,8 @@ const logoutButtonTextStyles = {
 };
 
 function Navbar() {
-  const navigate = useNavigate();
   const { authenticateUser, isLoggedIn, isAdmin, logout } = useAuth();
+  console.log("isAdmin: ", isAdmin)
 
   const handleLogout = logout
 
@@ -119,7 +115,7 @@ function Navbar() {
             {/* admin only  links */}
             {isLoggedIn && isAdmin && (
                 <li>
-                <NavLink to={'/lifetimeline'}>
+                <NavLink to={'/admin/products'}>
                     <Typography variant="h6" sx={navLinkStyles}>
                     Products inventory
                     </Typography>

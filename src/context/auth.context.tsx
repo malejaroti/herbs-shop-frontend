@@ -45,7 +45,7 @@ function AuthProvider({children}: AuthProviderProps) {
       console.log(response);
       setIsLoggedIn(true);
       setLoggedUserId(response.data.user_id);
-      setIsAdmin(response.data.role === "admin")
+      setIsAdmin(response.data.role === "ADMIN")
       setIsAuthenticating(false);
     } catch (error) {
       // if we go into the catch it means that the backend rejected the token

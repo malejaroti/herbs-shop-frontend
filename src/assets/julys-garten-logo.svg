@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 160" role="img" aria-labelledby="title desc">
+  <title id="title">July's Garten - Logo</title>
+  <desc id="desc">Wordmark logo with a leaf icon for a herb shop</desc>
+  <defs>
+    <style>
+      .fill { fill: #3f5f1186; } /* Change this color in code or via CSS if embedding inline */
+      .text { font-family: ui-serif, Georgia, 'Times New Roman', serif; font-weight: 700; }
+    </style>
+  </defs>
+  <!-- Leaf icon (left) -->
+  <g transform="translate(24,24) scale(1.0)">
+    <path class="fill" d="M66 12c-20 3-36 10-48 22C5 49-2 70 6 88c8 18 28 26 50 22 22-4 46-22 58-44 7-12 10-24 8-34-1-7-5-12-11-15-7-3-16-4-27-5-6-1-12-1-18 0z"/>
+    <path fill="#fff" opacity="0.9" d="M24 66c22-22 48-38 78-46-33 14-58 34-74 58 13-6 29-12 48-16-20 9-36 20-48 33 0 0-6-13-4-29z"/>
+  </g>
+  <!-- Text -->
+  <text class="fill text" x="150" y="100" font-size="72">July's</text>
+  <text class="fill text" x="340" y="100" font-size="72">Garten</text>
+</svg>
