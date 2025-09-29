@@ -9,6 +9,7 @@ import Login from './pages/Login';
 import { NotFoundPage } from './pages/NotFoundPage';
 import ResponsiveAppBar from './components/Navbar2';
 import AboutPage from './pages/AboutPage';
+import ShopPage from './pages/ShopPage';
 
 function App() {
 
@@ -18,13 +19,13 @@ function App() {
       <div className="flex flex-col flex-1">
         {/* <Navbar /> */}
         <ResponsiveAppBar />
-        {/* <SearchAppBar /> */}
 
         {/* Main container */}
         <main className="w-screen flex-1 bb-red px-10">
           {/* <div className='central-section bb-black h-full w-[50%] m-auto'> */}
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/shop" element={<ShopPage />} />
             <Route path="/admin/products" element={ <OnlyAdmin> {' '} <AdminProducts />{' '} </OnlyAdmin> } />
             <Route path="/sign-up" element={<SignUp />} />
             <Route path="/login" element={<Login />} />
