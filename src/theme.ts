@@ -19,21 +19,24 @@ declare module '@mui/material/styles' {
 const theme = createTheme({
   typography: {
     fontFamily: [
-      'Poppins',
-      'Helvetica',
-      'Arial',
-      'sans-serif',
+      'Fredoka',
+      // 'Poppins',
+      // 'Helvetica',
+      // 'Arial',
+      'consolas',
     ].join(','),
   },
   palette: {
-    // primary: {
-    //   main: "#ebffe9",   // color principal
-    //   light: "#80e27e",  // opcional
-    //   dark: "#087f23",   // opcional
-    //   contrastText: "#5d655c", // color del texto sobre primary
-    // },
+    primary: {
+      main: "#474b43",   
+      // main: "#ebffe9",   
+      // light: "#80e27e",  // opcional
+      // dark: "#087f23",   // opcional
+      // contrastText: "#5d655c", // color del texto sobre primary
+    },
     gray: {
       main: '#3c3b3b',  
+      light: '#6a7282'
     }
   },
   components: {

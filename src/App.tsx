@@ -10,6 +10,7 @@ import { NotFoundPage } from './pages/NotFoundPage';
 import ResponsiveAppBar from './components/Navbar2';
 import AboutPage from './pages/AboutPage';
 import ShopPage from './pages/ShopPage';
+import ProductDetails from './pages/ProductDetails';
 
 function App() {
 
@@ -26,6 +27,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/shop" element={<ShopPage />} />
+            <Route path="/:slug" element={<ProductDetails />} />
             <Route path="/admin/products" element={ <OnlyAdmin> {' '} <AdminProducts />{' '} </OnlyAdmin> } />
             <Route path="/sign-up" element={<SignUp />} />
             <Route path="/login" element={<Login />} />
