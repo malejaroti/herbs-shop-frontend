@@ -11,17 +11,22 @@ import { BrowserRouter } from 'react-router';
 import { AuthProvider } from './context/auth.context.tsx';
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import theme from './theme';
+import { StyledEngineProvider } from '@mui/material/styles';
+import GlobalStyles from '@mui/material/GlobalStyles';
 
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-        <BrowserRouter>
-          <AuthProvider>
-              <App />
-          </AuthProvider>
-        </BrowserRouter>
-    </ThemeProvider>
+    <StyledEngineProvider enableCssLayer>
+      <GlobalStyles styles="@layer theme, base, mui, components, utilities;" />
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+          <BrowserRouter>
+            <AuthProvider>
+                <App />
+            </AuthProvider>
+          </BrowserRouter>
+      </ThemeProvider>
+    </StyledEngineProvider>
   </StrictMode>,
 )
