@@ -23,10 +23,20 @@ export default function MuiDataGrid({columns, rows}: DataGridProps) {
         checkboxSelection
         disableRowSelectionOnClick
         sx={{
-            '& .MuiDataGrid-columnHeaders': {
-                backgroundColor: '#f5f5f5',  // light gray
-                color: '#333',                // text color
-                fontWeight: 'bold',
+            '&& .MuiDataGrid-columnHeaders': {
+              backgroundColor: '#f5f5f5',
+            },
+            '&& .MuiDataGrid-columnHeader': {
+              backgroundColor: '#e7e7e7', // ensure each header cell gets it
+              color: '#333',
+              fontWeight: 700,
+            },
+            '&& .MuiDataGrid-columnHeaderTitle': {
+              fontWeight: 700,
+              whiteSpace: 'normal',
+              wordWrap: 'break-word',
+              lineHeight: '1.2',
+              // textAlign:'center'
             },
             '& .MuiDataGrid-cell': {
                 whiteSpace: 'normal',

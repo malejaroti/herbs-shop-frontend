@@ -51,11 +51,11 @@ function AdminProducts() {
     // { field: 'id', headerName: 'ID', width: 90},
     { field: 'name', headerName: 'Name', width: 200, editable: true },
     { field: 'latinName', headerName: 'Latin name', width: 100 },
-    { field: 'bulkGrams', headerName: 'Lagerbestand (g)', type: 'number', width: 150 },
-    { field: 'reorderAtGrams', headerName: 'Mindestbestand (g)', type: 'number', width: 120 },
+    { field: 'bulkGrams', headerName: 'Lagerbestand (g)', type: 'number', width: 120 },
+    { field: 'reorderAtGrams', headerName: 'Mindestbestand (g)', type: 'number', width: 130 },
     { field: 'originCountry', headerName: 'Herkunft', width: 110 },
     { field: 'organicCert', headerName: 'Bio', width: 50 },
-    { field: 'slug', headerName: 'Slug', width: 90, editable: false },
+    { field: 'slug', headerName: 'URL', width: 90, editable: false },
     { field: 'active', headerName: 'Sichtbar im Shop', width: 90, editable: false },
   ];
 
