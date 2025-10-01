@@ -1,14 +1,15 @@
 import api from '../services/config.services';
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, startTransition, useContext, useEffect, useState } from 'react';
 import { type ReactNode } from 'react';
 import { useNavigate } from 'react-router';
-import { MoonLoader } from "react-spinners";
+import Spinner from '../components/Spinner';
 
 
 interface AuthContextType {
   isLoggedIn: boolean;
   loggedUserId: string | null;
   isAdmin: boolean;
+  isAuthenticating: boolean
   authenticateUser: () => Promise<void>;
   logout: () => void;
 }
@@ -27,23 +28,26 @@ function AuthProvider({children}: AuthProviderProps) {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [loggedUserId, setLoggedUserId] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
-  const [isAuthenticating, setIsAuthenticating] = useState<boolean>(false);
+  const [isAuthenticating, setIsAuthenticating] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const navigate = useNavigate()
 
   useEffect(() => {
     // at the start of the app, validate if there is an auth token in local storage
     const storageToken = localStorage.getItem(TOKEN_KEY)
     // console.log("storageToken: ", storageToken)
+
+    // If auth_token in local storage then authenticate the user (verify the token)
     if (storageToken) {
       authenticateUser();
     } else {
+      setIsLoading(false)
       setIsAuthenticating(false)
     }
   }, []);
 
   const authenticateUser = async (): Promise<void> => {
     // this is the function that sends the token to the backend to verify its validity and receives info about the owner of that token
-    setIsAuthenticating(true)
     try {
       const response = await api.get('/auth/verify');
 
@@ -63,68 +67,35 @@ function AuthProvider({children}: AuthProviderProps) {
     }
   };
 
-  const logout = () => {
-    //remove the token
-    localStorage.removeItem(TOKEN_KEY);
+  const logout =  () => {
+    // redirect to a public page (home)
+     navigate('/');
+    
+     startTransition(() => {
+      // update the context states
+      setIsLoggedIn(false);
+      setLoggedUserId(null);
+      setIsAdmin(false)
+      
+      //remove the token
+      localStorage.removeItem(TOKEN_KEY);
+     })
 
-    // update the context states
-    setIsLoggedIn(false);
-    setLoggedUserId(null);
-    setIsAdmin(false)
-    setIsAuthenticating(false);
-
-    // redirect to a public page
-    navigate('/');
   }
 
   const passedContext: AuthContextType = {
     isLoggedIn,
     loggedUserId,
     isAdmin,
+    isAuthenticating,
     authenticateUser,
     logout
   };
 
+  const message = `Authenticating user… This project uses a free server on Render, so it may take a few seconds to start up (especially on the first load). Thanks for your patience.`
   if (isAuthenticating) {
-    const containerStyle: React.CSSProperties = {
-      minHeight: '100svh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '2rem',
-    };
-
-    const contentStyle: React.CSSProperties = {
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      gap: '1rem',
-      textAlign: 'center',
-      maxWidth: '44rem',
-      margin: '0 auto',
-    };
-
-    const messageStyle: React.CSSProperties = {
-      lineHeight: 1.5,
-      fontSize: '1.5rem',
-      opacity: 0.9,
-    };
-
     return (
-      <main style={containerStyle}>
-        <section style={contentStyle}>
-          <MoonLoader
-            color={'#79a4aa'}
-            loading={isAuthenticating}
-            size={80}
-            aria-label="Loading Spinner"
-            data-testid="loader"
-          />
-          <p style={messageStyle} aria-live="polite">
-            Authenticating user… This project uses a free server on Render, so it may take a few seconds to start up (especially on the first load). Thanks for your patience.
-          </p>
-        </section>
-      </main>
+      <Spinner message={message} loadingState={isAuthenticating}/>
     )
   }
 
