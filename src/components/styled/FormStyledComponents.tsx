@@ -19,10 +19,13 @@ export const FormContainer = styled(Box)(() => ({
 export const FormHeader = styled(Box)(() => ({
   display: 'flex',
   alignItems: 'center',
+  justifyContent:'center',
+  alignContent:'center',
   textAlign:'center',
   background: '#c2cbb6',
   height:'60px',
-  padding:'10px'
+  // padding:'10px'
+  // padding:'auto'
   // bg-slate-300 h-[100px] flex items-center p-[10px]
 
 }))

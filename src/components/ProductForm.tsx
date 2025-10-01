@@ -1,4 +1,4 @@
-import { FormContainer, FormHeader } from "./FormStyledComponents"
+import { FormContainer, FormHeader } from "./styled/FormStyledComponents"
 import Typography from "@mui/material/Typography"
 import FormControl from "@mui/material/FormControl"
 import FormLabel from "@mui/material/FormLabel"
@@ -9,16 +9,20 @@ import InputLabel from "@mui/material/InputLabel"
 import MenuItem from "@mui/material/MenuItem"
 import Chip from "@mui/material/Chip"
 import Button from "@mui/material/Button"
+import IconButton from "@mui/material/IconButton"
+import NavigateBefore from '@mui/icons-material/NavigateBefore';
+import ArrowBack from '@mui/icons-material/ArrowBack';
 import Box from "@mui/material/Box"
 import Alert from '@mui/material/Alert';
 
-import { useParams } from "react-router"
-import { useState } from "react"
+import { useNavigate, useParams } from "react-router"
+import { useEffect, useState } from "react"
 import type { Category, Product, ProductCreateDTO, ProductVariantDTO } from "../types/Product"
 import PageShell from "./layout/PageShell"
 import VariantsEditor from "./VariantsEditor"
 import ImageUploader from "./ImageUploader"
 import api from "../services/config.services"
+import Spinner from "./Spinner"
 
 const newProduct: ProductCreateDTO = {
     name: "",
@@ -28,7 +32,7 @@ const newProduct: ProductCreateDTO = {
     reorderAtGrams: 500,
     descriptionMd: "",
     originCountry: "Deutschland",
-    organicCert: "None",
+    organicCert: "Keine",
     active: false,
     variants:  [],
     categories: [],
@@ -38,22 +42,89 @@ const newProduct: ProductCreateDTO = {
 
 type ProductCategoriesGermanNames = "Kräuter" | "Gewürze";
 const categoriesGermanNames: ProductCategoriesGermanNames[] = ["Kräuter", "Gewürze"]
+
+// Record<K, T> is a TS utility type that creates an object type with keys of type K and values of type T.
 const categoryMap: Record<ProductCategoriesGermanNames, Category> = {
   "Kräuter": "HERBS",
   "Gewürze": "SPICES",
 };
-function ProductForm() {
-    const {formType, product} = useParams()
-    const [formData, setFormData] = useState<ProductCreateDTO | Product>(
-        newProduct
-    );
-    // formType === "create" ? { ...newProduct } : { product}
+
+// Use existing categoryMap to create reverse mapping
+const reverseMap = Object.fromEntries(
+    Object.entries(categoryMap).map(([german, english]) => [english, german])
+) as Record<Category, ProductCategoriesGermanNames>;
+
+type ProductFormProps = {
+    formType : string
+    productId? : string
+}
+function ProductForm({formType, productId}: ProductFormProps) {
+    const [isFetching, setIsFetching] = useState(formType === "edit");
+    // To avoid FormData state to initially be null, initialize first with "values"  for a new product while data from product loads, in case the form is used for editing
+    const [formData, setFormData] = useState<ProductCreateDTO | Product >({ ...newProduct }); 
     const [selectedCategories, setSelectedCategories] = useState<ProductCategoriesGermanNames[]>([]);
     const [errorMessageServer, setErrorMessageServer] = useState("");
     const [helperTextTitleInput, setHelperTextTitleInput] = useState<string | null>(null);
     const [variants, setVariants] = useState<ProductVariantDTO[]>([]);
     const [file, setFile] = useState<File | null>(null);
     const [isUploading, setIsUploading] = useState(false); // for a loading animation effect in the "Submit" button while image uploads to cloudinary and URL is generated
+    const navigate = useNavigate()
+
+    // Another option for FormData initialization. 
+    // Initialiye formData with newProduct for create, or null for edit (until product loads)
+    // const [formData, setFormData] = useState<ProductCreateDTO | Product >(
+    //     formType === "create" ? { ...newProduct } : null
+    // );
+
+    useEffect(() => {
+        if (formType === "edit" && productId) {
+            getProductDetails();
+        }
+    }, [formType, productId]);
+
+    const getProductDetails = async () => {
+        setIsFetching(true)
+        try {
+            const response = await api.get(`/admin/products/${productId}`)
+            setIsFetching(false)
+            console.log("Product details: ", response.data);
+            const productData = response.data;
+
+            // Process the received data before setting it to formData
+            const processedProductData = {
+                ...productData,
+                organicCert: productData.organicCert ?? "Keine", // Convert null to "Keine"
+            };
+            
+            const categoriesInGerman = (productData.categories as Category[]).map(categoryInEnglish => {
+                for (const germanCatName in categoryMap){
+                    if(categoryMap[germanCatName as ProductCategoriesGermanNames]  === categoryInEnglish ){
+                        return germanCatName
+                    }
+                } return undefined;
+                }
+            )
+
+            // const germanCategories = productData.categories
+            //     ?.map((cat: Category) => reverseMap[cat])
+            //     .filter(Boolean) || [];
+
+            // Set formData once product is loaded
+            setFormData(productData);
+            setSelectedCategories(categoriesInGerman as ProductCategoriesGermanNames[]);
+
+        } catch (error) {
+            console.log(error)
+        }finally {
+            setIsFetching(false);
+        }
+    };
+
+    // Show loading state while product is being fetched for edit mode
+    if (isFetching) {
+        const message = "Fetching product details"
+        return <Spinner message={message} loadingState={isFetching} />
+    }
 
     const handleFormDataChange = ( event: React.ChangeEvent< HTMLInputElement | HTMLTextAreaElement > ) => {
         const { name, value } = event.currentTarget;
@@ -99,11 +170,10 @@ function ProductForm() {
         console.log('The upload data to be passed to Backend is: ', uploadData);
 
         try {
-            const response = await api.post('/upload', uploadData);
+            const response = await api.post('/admin/upload', uploadData);
             // backend sends the image to the frontend => res.json({ imageUrl: req.file.path });
             console.log('Response from endpoint POST upload: ', response);
             setIsUploading(false); // to stop the loading animation
-
             // Return the image URL instead of updating state here
             return response.data.imageUrl;
         } catch (error) {
@@ -133,7 +203,7 @@ function ProductForm() {
 
         // Build the images array including any newly uploaded image
         const finalImages = uploadedImageUrl
-        ? [...formData.images, {"url":uploadedImageUrl, "alt":uploadedImageUrl}]
+        ? [...formData.images, {"url":uploadedImageUrl, "alt":formData.name}]
         : formData.images;
 
         const newProduct = {
@@ -146,7 +216,10 @@ function ProductForm() {
         try {
             const response = await api.post( `/admin/products/`, newProduct );
             console.log('Res POST new product: ', response);
+            if(response.status === 201){
 
+                navigate(`/admin/products`)
+            }
             // Call the success callbacks
             // props.onRefresh(); // Refresh the timeline items
             // props.onSuccess(); // Close the drawer
@@ -163,9 +236,24 @@ function ProductForm() {
     };
 
     return (
-        <PageShell>
+    <PageShell>
+        <IconButton
+            // variant="outlined"
+            type="button"
+            onClick={()=> {navigate(`/admin/products`)}}
+            sx={{
+                marginTop:'-30px',
+                marginLeft:'-50px',
+                background:'white',
+                // marginBottom:'5px'
+                fontSize:'1rem'
+            }}
+        >
+            <ArrowBack/>Zurück
+        </IconButton>
+
         <FormHeader>
-            <Typography gutterBottom variant="h4" component="div">
+            <Typography gutterBottom variant="h4" component="div" sx={{margin:'auto'}}>
                 {formType === 'create' ? '➕ Neues Produkt anlegen' : '✒️ Produkt bearbeiten'}
             </Typography>
         </FormHeader>
@@ -249,11 +337,11 @@ function ProductForm() {
                     size="small" //makes the placeholder look closer to the top border of the input
                     multiline
                     rows={3}
+                    value={formData.descriptionMd}
+                    onChange={handleFormDataChange}
                     aria-describedby="productDescription-helper-text"
                     // sx={responsiveStyles.formInput}
-                    // value={formData.description}
-                    // onChange={handleFormDataChange}
-                />
+                    />
                 <FormHelperText id="productDescription-helper-text">
                     Kurze, prägnante Beschreibung (max. 3–4 Zeilen). Wird direkt unter dem Produktnamen im Shop angezeigt.
                 </FormHelperText>
@@ -336,7 +424,7 @@ function ProductForm() {
                         // sx={responsiveStyles.formInput}
                     />
                     <FormHelperText id="organicCert-helper-text">
-                        
+                        Falls vorhanden, bitte die Nummer eintragen (z. B. DE-ÖKO-001)
                     </FormHelperText>
                 </FormControl>
             </div>
@@ -361,9 +449,9 @@ function ProductForm() {
                     type="button"
                     size="medium"
                     // sx={responsiveStyles.formInput}
-                    // onClick={props.onCancel}
+                    onClick={()=> {navigate(`/admin/products`)}}
                 >
-                    Cancel
+                    Abbrechen
                 </Button>
                 <Button
                     variant="contained"
@@ -372,12 +460,13 @@ function ProductForm() {
                     // sx={responsiveStyles.formInput}
                     // onClick={formType === "create" ? handleSubmit : handleTimelineUpdate}
                     // onClick={handleSubmit}
+                    loading={isUploading}
                 >
                     {formType === 'create' ? 'Produkt erstellen' : 'Änderungen speichern'}
                 </Button>
             </Box>
         </Box>
-        </PageShell>
+    </PageShell>
     )
 }
 export default ProductForm
