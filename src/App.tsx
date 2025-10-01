@@ -11,6 +11,7 @@ import ResponsiveAppBar from './components/Navbar2';
 import AboutPage from './pages/AboutPage';
 import ShopPage from './pages/ShopPage';
 import ProductDetails from './pages/ProductDetails';
+import ProductForm from './components/ProductForm';
 
 function App() {
 
@@ -29,6 +30,7 @@ function App() {
             <Route path="/shop" element={<ShopPage />} />
             <Route path="/:slug" element={<ProductDetails />} />
             <Route path="/admin/products" element={ <OnlyAdmin> {' '} <AdminProducts />{' '} </OnlyAdmin> } />
+            <Route path="/admin/products/:formType" element={ <OnlyAdmin> {' '} <ProductForm />{' '} </OnlyAdmin> } />
             <Route path="/sign-up" element={<SignUp />} />
             <Route path="/login" element={<Login />} />
             <Route path="/about" element={<AboutPage />} />

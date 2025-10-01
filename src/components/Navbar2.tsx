@@ -23,19 +23,18 @@ type PageLink = {
 }
 const AdminPages : PageLink[] = [
     { pageName: 'Shop', path: '/shop' },
-    { pageName: 'Products', path: '/admin/products' },
+    { pageName: 'Manage Products', path: '/admin/products' },
     { pageName: 'Orders', path: '/admin/orders' }
 ]
 const CustomerPages : PageLink[] = [
     { pageName: 'Shop', path: '/shop' },
     { pageName: 'Über mich', path: '/about' },
-    { pageName: 'Orders', path: '/admin/orders' }
 ]
 
 function ResponsiveAppBar() {
     const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null);
     const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
-    const { authenticateUser, isLoggedIn, isAdmin, logout } = useAuth();
+    const { isLoggedIn, isAdmin, logout } = useAuth();
     const [pages, setPages] = useState<PageLink[]>([]);
     const navigate = useNavigate()
 
@@ -76,7 +75,7 @@ function ResponsiveAppBar() {
     }
 
     return (
-        <AppBar position="static">
+        <AppBar position="static" elevation={0}>
         <Container maxWidth="xl">
             <Toolbar disableGutters sx={{display:'flex', justifyContent:'space-between'}}>
                 {/* Logo */}
@@ -186,7 +185,18 @@ function ResponsiveAppBar() {
                     component={RouterLink}
                     to={page.path}
                     onClick={handleCloseNavMenu}
-                    sx={{ my: 2, color: 'white', display: 'block' }}
+                    sx={{ 
+                        my: 2, 
+                        textAlign:'center',
+                        color: 'white', 
+                        display: 'block',
+                        '&:hover': {
+                            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                            transform: 'scale(1.05)',
+                            transition: 'all 0.3s ease'
+                        },
+                        transition: 'all 0.3s ease'
+                     }}
                 >
                     {page.pageName}
                 </Button>

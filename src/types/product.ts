@@ -15,6 +15,9 @@ export type ProductVariant = {
     active: boolean;
 }
 
+export type ProductVariantDTO = Omit<ProductVariant, 'id' | 'productId' | 'sku'>
+export type ProductVariantCreateDTO_afterProduct = Omit<ProductVariant, 'id'>
+
 export type Product = {
     id: string
     name: string
@@ -26,7 +29,9 @@ export type Product = {
     originCountry: string
     organicCert: string
     active: boolean
-    variants: ProductVariant[]
+    variants: ProductVariant[] | ProductVariantDTO[]
     categories: "HERBS" | "SPICES"
     images: Image[]
 }
+
+export type ProductCreateDTO = Omit<Product, 'id'>

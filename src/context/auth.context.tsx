@@ -33,7 +33,7 @@ function AuthProvider({children}: AuthProviderProps) {
   useEffect(() => {
     // at the start of the app, validate if there is an auth token in local storage
     const storageToken = localStorage.getItem(TOKEN_KEY)
-    console.log("storageToken: ", storageToken)
+    // console.log("storageToken: ", storageToken)
     if (storageToken) {
       authenticateUser();
     } else {
