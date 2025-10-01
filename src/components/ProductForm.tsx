@@ -10,11 +10,15 @@ import MenuItem from "@mui/material/MenuItem"
 import Chip from "@mui/material/Chip"
 import Button from "@mui/material/Button"
 import Box from "@mui/material/Box"
+import Alert from '@mui/material/Alert';
+
 import { useParams } from "react-router"
 import { useState } from "react"
-import type { Product, ProductCreateDTO, ProductVariantDTO } from "../types/Product"
+import type { Category, Product, ProductCreateDTO, ProductVariantDTO } from "../types/Product"
 import PageShell from "./layout/PageShell"
 import VariantsEditor from "./VariantsEditor"
+import ImageUploader from "./ImageUploader"
+import api from "../services/config.services"
 
 const newProduct: ProductCreateDTO = {
     name: "",
@@ -27,23 +31,29 @@ const newProduct: ProductCreateDTO = {
     organicCert: "None",
     active: false,
     variants:  [],
-    categories: "HERBS",
+    categories: [],
     images: []
 
 }
 
-const categories = ["Kräuter", "Gewürze"]
-
+type ProductCategoriesGermanNames = "Kräuter" | "Gewürze";
+const categoriesGermanNames: ProductCategoriesGermanNames[] = ["Kräuter", "Gewürze"]
+const categoryMap: Record<ProductCategoriesGermanNames, Category> = {
+  "Kräuter": "HERBS",
+  "Gewürze": "SPICES",
+};
 function ProductForm() {
     const {formType, product} = useParams()
     const [formData, setFormData] = useState<ProductCreateDTO | Product>(
         newProduct
     );
     // formType === "create" ? { ...newProduct } : { product}
-    const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-    const [errorMessageServer, setErrorMessageServer] = useState<string>("");
+    const [selectedCategories, setSelectedCategories] = useState<ProductCategoriesGermanNames[]>([]);
+    const [errorMessageServer, setErrorMessageServer] = useState("");
     const [helperTextTitleInput, setHelperTextTitleInput] = useState<string | null>(null);
     const [variants, setVariants] = useState<ProductVariantDTO[]>([]);
+    const [file, setFile] = useState<File | null>(null);
+    const [isUploading, setIsUploading] = useState(false); // for a loading animation effect in the "Submit" button while image uploads to cloudinary and URL is generated
 
     const handleFormDataChange = ( event: React.ChangeEvent< HTMLInputElement | HTMLTextAreaElement > ) => {
         const { name, value } = event.currentTarget;
@@ -52,17 +62,104 @@ function ProductForm() {
             [name]: value,
         }));
     };
+
+    const isGermanCategory = (v: string): v is ProductCategoriesGermanNames =>
+        (["Kräuter", "Gewürze"] as const).includes(v as ProductCategoriesGermanNames);
+
     const handleSelectChange = (event: SelectChangeEvent<typeof selectedCategories>) => {
-        const { target: { value } } = event;
-        setSelectedCategories(
-        // On autofill we get a stringified value.
-        typeof value === 'string' ? value.split(',') : value,
-        );
+        // const { target: { value } } = event;
+        const value = event.target.value;
+        const selected = typeof value === 'string' ? value.split(',') : value;
+
+        // keep only valid keys, then map
+        const mappedCategories = selected
+            .filter(isGermanCategory)               
+            .map((cat) => categoryMap[cat]);
+
+        console.log(mappedCategories)
+        setSelectedCategories(selected.filter(isGermanCategory)); // for chips/UI
+
+        setFormData((prev) => ({
+            ...prev,
+            categories: mappedCategories,
+        }));
     };
+
     const handleChipDelete = (chipToDelete: string) => {
         setSelectedCategories((chips) =>
             chips.filter((chip) => chip !== chipToDelete)
         );
+    };
+
+    const handleFileUpload = async (file: File) => {
+        console.log('The file to be uploaded is: ', file);
+        setIsUploading(true); // to start the loading animation
+        const uploadData = new FormData(); // images and other files need to be sent to the backend in a FormData
+        uploadData.append('image', file);
+        console.log('The upload data to be passed to Backend is: ', uploadData);
+
+        try {
+            const response = await api.post('/upload', uploadData);
+            // backend sends the image to the frontend => res.json({ imageUrl: req.file.path });
+            console.log('Response from endpoint POST upload: ', response);
+            setIsUploading(false); // to stop the loading animation
+
+            // Return the image URL instead of updating state here
+            return response.data.imageUrl;
+        } catch (error) {
+            setIsUploading(false);
+            setErrorMessageServer(typeof error === "string" ? error : (error instanceof Error ? error.message : JSON.stringify(error)))
+            // navigate('/error');
+            // throw error; // Re-throw to handle in handleSubmit
+        }
+    };
+
+     const handleSubmit = async (event: React.FormEvent) => {
+        event.preventDefault();
+
+        let uploadedImageUrl = null;
+
+        // Wait for file upload to complete before creating the item
+        if (file !== null) {
+        try {
+            uploadedImageUrl = await handleFileUpload(file);
+        } catch (error) {
+            console.error('Image upload failed:', error);
+            setErrorMessageServer("The product will be created without an image")
+            // set availability to false because a product without an image should not be shown in store ? 
+            // return; // Stop submission if image upload fails
+        }
+        }
+
+        // Build the images array including any newly uploaded image
+        const finalImages = uploadedImageUrl
+        ? [...formData.images, {"url":uploadedImageUrl, "alt":uploadedImageUrl}]
+        : formData.images;
+
+        const newProduct = {
+            ...formData,
+            organicCert: formData.organicCert === "None" ? null : formData.organicCert,
+            images: finalImages, // Use the final images array
+        };
+        console.log('New product to be created: ', newProduct);
+
+        try {
+            const response = await api.post( `/admin/products/`, newProduct );
+            console.log('Res POST new product: ', response);
+
+            // Call the success callbacks
+            // props.onRefresh(); // Refresh the timeline items
+            // props.onSuccess(); // Close the drawer
+            
+        } catch (error) {
+            if (typeof error === "object" && error !== null && "response" in error) {
+                // @ts-ignore
+                console.log('Error in the creation of a new product: ', error.response?.data?.errors);
+            } else {
+                console.log('Error in the creation of a new product: ', error);
+            }
+            // navigate('/error');
+        }
     };
 
     return (
@@ -72,7 +169,17 @@ function ProductForm() {
                 {formType === 'create' ? '➕ Neues Produkt anlegen' : '✒️ Produkt bearbeiten'}
             </Typography>
         </FormHeader>
-        <FormContainer>
+        <Box
+            sx={{
+                margin: "20px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "30px"
+            }}
+            component="form"
+            onSubmit={handleSubmit}
+            noValidate
+        >
             <div className="flex gap-[50px]">
                 <FormControl sx={{width:'70%'}} error={helperTextTitleInput !== null}>
                     <FormLabel htmlFor="name" required >
@@ -118,11 +225,17 @@ function ProductForm() {
                             </Box>
                         )}
                     >
-                        {(categories ?? []).map((category) => <MenuItem key={category} value={category} > {category} </MenuItem> )}
+                        {(categoriesGermanNames ?? []).map((category) => <MenuItem key={category} value={category} > {category} </MenuItem> )}
                     </Select>
               </FormControl>
 
             </div>
+            
+            <ImageUploader onFileSelect={setFile} />
+            {errorMessageServer !== ""
+                ? <Alert severity="error"> Bild-Upload fehlgeschlagen. Error: {errorMessageServer} </Alert>
+                : null
+            }
 
             <FormControl fullWidth >
                 <FormLabel htmlFor="description">
@@ -258,11 +371,12 @@ function ProductForm() {
                     size="medium"
                     // sx={responsiveStyles.formInput}
                     // onClick={formType === "create" ? handleSubmit : handleTimelineUpdate}
+                    // onClick={handleSubmit}
                 >
                     {formType === 'create' ? 'Produkt erstellen' : 'Änderungen speichern'}
                 </Button>
             </Box>
-        </FormContainer>
+        </Box>
         </PageShell>
     )
 }

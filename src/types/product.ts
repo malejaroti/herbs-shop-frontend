@@ -18,6 +18,7 @@ export type ProductVariant = {
 export type ProductVariantDTO = Omit<ProductVariant, 'id' | 'productId' | 'sku'>
 export type ProductVariantCreateDTO_afterProduct = Omit<ProductVariant, 'id'>
 
+export type Category = "HERBS" | "SPICES";
 export type Product = {
     id: string
     name: string
@@ -27,10 +28,10 @@ export type Product = {
     reorderAtGrams: number
     descriptionMd: string
     originCountry: string
-    organicCert: string
+    organicCert: string | null
     active: boolean
     variants: ProductVariant[] | ProductVariantDTO[]
-    categories: "HERBS" | "SPICES"
+    categories: Category[]
     images: Image[]
 }
 
