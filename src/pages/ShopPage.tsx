@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactEventHandler } from "react";
 import api from "../services/config.services";
 import ProductCard from "../components/ProductCard";
 import type { Product } from "../types/Product";
@@ -6,12 +6,14 @@ import PageShell from "../components/layout/PageShell";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Select from "@mui/material/Select";
+import TextField from "@mui/material/TextField";
 import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
 
 function ShopPage() {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [searchedValue, setSearchedValue] = useState("");
 
   useEffect(() => {
     getAllProducts()
@@ -27,37 +29,35 @@ function ShopPage() {
       console.log(error)
     }
   }
-
+  const filteredProducts = allProducts
+    .filter((product) => (searchedValue ? product.name.toLowerCase().includes(searchedValue.toLowerCase()) : true))
 
   return (
     <>
       <PageShell>
         <Box sx={{ display: "flex", flexDirection: 'column', gap: '25px' }}>
+          
           {/* Filter and search box */}
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', borderRadius: '5px', p: '10px', }}>
-
-            {/* Category select (dropdown) */}
             <Box sx={{ minWidth: 120 }}>
               <FormControl fullWidth >
-                <InputLabel id="category-select">Kategorie</InputLabel>
-                <Select
-                  labelId="category-select"
-                  id="category-select"
-                  // value={age}
-                  label="Kategorie"
-                // onChange={handleChange}
+                {/* <InputLabel id="search-input">Produkt suchen</InputLabel> */}
+                <TextField
+                  id="search-input"
+                  label="Produkt suchen"
+                  value={searchedValue}
+                  onChange={(e) => setSearchedValue(e.target.value)}
                 >
-                  <MenuItem value={"HERBS"}>Kräuter</MenuItem>
-                  <MenuItem value={"SPICES"}>Gewürze</MenuItem>
-                </Select>
+                </TextField>
               </FormControl>
             </Box>
           </Box>
 
           {/* Products  gallery container */}
-          <Box sx={{display:'flex',  flexWrap:'wrap', gap:'40px'}} >
-            {allProducts.length >= 0 &&
-              allProducts.map(eachProduct => (
+          {/* //TODO: Adjust minHeight  */}
+          <Box sx={{minHeight:'500px',display:'flex',  flexWrap:'wrap', margin:'auto', gap:'40px'}} >
+            {filteredProducts.length >= 0 &&
+              filteredProducts.map(eachProduct => (
                 <ProductCard key={eachProduct.id} product={eachProduct} />
               ))
             }
