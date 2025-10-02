@@ -17,7 +17,7 @@ import Alert from '@mui/material/Alert';
 
 import { useNavigate, useParams } from "react-router"
 import { useEffect, useState } from "react"
-import type { Category, Product, ProductCreateDTO, ProductVariantDTO } from "../types/Product"
+import type { Category, Product, ProductCreateDTO, ProductVariant, ProductVariantDTO } from "../types/Product"
 import PageShell from "./layout/PageShell"
 import VariantsEditor from "./VariantsEditor"
 import ImageUploader from "./ImageUploader"
@@ -60,12 +60,16 @@ type ProductFormProps = {
 }
 function ProductForm({formType, productId}: ProductFormProps) {
     const [isFetching, setIsFetching] = useState(formType === "edit");
+    const [isFetchingProduct, setIsFetchingProduct] = useState(formType === "edit");
+    const [isFetchingVariants, setIsFetchingVariants] = useState(false);
     // To avoid FormData state to initially be null, initialize first with "values"  for a new product while data from product loads, in case the form is used for editing
     const [formData, setFormData] = useState<ProductCreateDTO | Product >({ ...newProduct }); 
     const [selectedCategories, setSelectedCategories] = useState<ProductCategoriesGermanNames[]>([]);
     const [errorMessageServer, setErrorMessageServer] = useState("");
     const [helperTextTitleInput, setHelperTextTitleInput] = useState<string | null>(null);
-    const [variants, setVariants] = useState<ProductVariantDTO[]>([]);
+    // Keep variants as a union so it can hold either freshly created rows (DTO)
+    // or variants loaded from the backend (with id, productId, sku)
+    const [variants, setVariants] = useState<ProductVariantDTO[] | ProductVariant[]>([]);
     const [file, setFile] = useState<File | null>(null);
     const [isUploading, setIsUploading] = useState(false); // for a loading animation effect in the "Submit" button while image uploads to cloudinary and URL is generated
     const navigate = useNavigate()
@@ -79,22 +83,25 @@ function ProductForm({formType, productId}: ProductFormProps) {
     useEffect(() => {
         if (formType === "edit" && productId) {
             getProductDetails();
+            getVariants()
+            // getProductWithVariants()
         }
     }, [formType, productId]);
 
     const getProductDetails = async () => {
-        setIsFetching(true)
+        setIsFetchingProduct(true)
         try {
             const response = await api.get(`/admin/products/${productId}`)
-            setIsFetching(false)
-            console.log("Product details: ", response.data);
+            setIsFetchingProduct(false)
             const productData = response.data;
-
+            console.log("Product details (no variants): ", productData);
+            
             // Process the received data before setting it to formData
             const processedProductData = {
                 ...productData,
-                organicCert: productData.organicCert ?? "Keine", // Convert null to "Keine"
+                organicCert: productData.organicCert === null? "Keine": "" // Convert null to "Keine"
             };
+            console.log("Processed data to prefill form: ", processedProductData);
             
             const categoriesInGerman = (productData.categories as Category[]).map(categoryInEnglish => {
                 for (const germanCatName in categoryMap){
@@ -104,33 +111,53 @@ function ProductForm({formType, productId}: ProductFormProps) {
                 } return undefined;
                 }
             )
-
-            // const germanCategories = productData.categories
-            //     ?.map((cat: Category) => reverseMap[cat])
-            //     .filter(Boolean) || [];
-
-            // Set formData once product is loaded
-            setFormData(productData);
+            // Set formData once product is loaded with processed response
+            setFormData(processedProductData);
+            // setVariants(productData.variants)
             setSelectedCategories(categoriesInGerman as ProductCategoriesGermanNames[]);
 
         } catch (error) {
             console.log(error)
         }finally {
-            setIsFetching(false);
+            setIsFetchingProduct(false);
         }
     };
 
-    // Show loading state while product is being fetched for edit mode
-    if (isFetching) {
+    const getVariants = async () => {
+        setIsFetchingVariants(true)
+        try {
+            const response = await api.get(`/admin/products/${productId}/variants`)
+            setIsFetchingVariants(false)
+            const raw = response.data;
+            const productVariants = Array.isArray(raw)
+                ? raw
+                : Array.isArray(raw?.variants)
+                ? raw.variants
+                : [];
+            console.log("Product variants details: ", productVariants);
+            setVariants(productVariants)
+        } catch (error) {
+            console.log(error)
+        }finally {
+            setIsFetchingVariants(false);
+        }
+    };
+
+    // Show loading state while fetching (for edit mode)
+    if (isFetchingProduct) {
         const message = "Fetching product details"
-        return <Spinner message={message} loadingState={isFetching} />
+        return <Spinner message={message} loadingState={true} />
+    }else if (isFetchingVariants) {
+        const message = "Fetching variant details"
+        console.log(message)
     }
 
     const handleFormDataChange = ( event: React.ChangeEvent< HTMLInputElement | HTMLTextAreaElement > ) => {
-        const { name, value } = event.currentTarget;
+        const { name, value, type } = event.currentTarget;
+        
         setFormData((prev) => ({
             ...prev,
-            [name]: value,
+            [name]: type === "number" ? Number(value) : value,
         }));
     };
 
@@ -155,8 +182,9 @@ function ProductForm({formType, productId}: ProductFormProps) {
             categories: mappedCategories,
         }));
     };
+    
 
-    const handleChipDelete = (chipToDelete: string) => {
+    const deleteSelectedChip = (chipToDelete: string) => {
         setSelectedCategories((chips) =>
             chips.filter((chip) => chip !== chipToDelete)
         );
@@ -184,7 +212,7 @@ function ProductForm({formType, productId}: ProductFormProps) {
         }
     };
 
-     const handleSubmit = async (event: React.FormEvent) => {
+    const handleProductCreation = async (event: React.FormEvent) => {
         event.preventDefault();
 
         let uploadedImageUrl = null;
@@ -208,7 +236,8 @@ function ProductForm({formType, productId}: ProductFormProps) {
 
         const newProduct = {
             ...formData,
-            organicCert: formData.organicCert === "None" ? null : formData.organicCert,
+            variants,
+            organicCert: formData.organicCert === "Keine" ? null : formData.organicCert,
             images: finalImages, // Use the final images array
         };
         console.log('New product to be created: ', newProduct);
@@ -217,12 +246,17 @@ function ProductForm({formType, productId}: ProductFormProps) {
             const response = await api.post( `/admin/products/`, newProduct );
             console.log('Res POST new product: ', response);
             if(response.status === 201){
-
+                const newProductId = response.data.id
+                variants.forEach(async (variant) => {
+                    try {
+                        const response = await api.post( `/admin/products/${newProductId}/variants`, variant );
+                        console.log("Response variant creation: ", response)
+                    } catch (error) {
+                        console.log("Error variant creation: ", error)
+                    }
+                });
                 navigate(`/admin/products`)
             }
-            // Call the success callbacks
-            // props.onRefresh(); // Refresh the timeline items
-            // props.onSuccess(); // Close the drawer
             
         } catch (error) {
             if (typeof error === "object" && error !== null && "response" in error) {
@@ -230,6 +264,103 @@ function ProductForm({formType, productId}: ProductFormProps) {
                 console.log('Error in the creation of a new product: ', error.response?.data?.errors);
             } else {
                 console.log('Error in the creation of a new product: ', error);
+            }
+            // navigate('/error');
+        }
+    };
+
+    const buildFinalImages = async (): Promise<Array<{url: string, alt: string}>> => {
+        let uploadedImageUrl = null;
+        
+        if (file !== null) {
+            try {
+                uploadedImageUrl = await handleFileUpload(file);
+            } catch (error) {
+                console.error('Image upload failed:', error);
+                setErrorMessageServer("Image upload failed");
+            }
+        }
+        
+        return uploadedImageUrl
+            ? [...formData.images, {"url": uploadedImageUrl, "alt": formData.name}]
+            : formData.images;
+    };
+
+    const prepareProductData = async () => {
+        const finalImages = await buildFinalImages();
+        
+        return {
+            ...formData,
+            // Normalize "Keine" to null for backend
+            organicCert: formData.organicCert === "Keine" ? null : formData.organicCert,
+            images: finalImages,
+        };
+    };
+
+    const handleSubmit = async (event: React.FormEvent) => {
+        event.preventDefault();
+        const productData = await prepareProductData();
+        console.log('Prepared product data to send: ', productData);
+
+        try {
+            const response = formType === "create"
+                ? await api.post(`/admin/products/`, productData)
+                : await api.patch(`/admin/products/${productId}`, productData);
+                
+            if (response.status === 201) {
+                navigate(`/admin/products`);
+            }
+        } catch (error) {
+            console.log(`Error in product ${formType}:`, error);
+        }
+    };
+
+    const handleProductUpdate = async (event: React.FormEvent) => {
+        event.preventDefault();
+        console.log("Click on save product update")
+        // console.log("Variants:", variants)
+        console.log("FormData before :", formData)
+
+        const updatedProduct = {
+            ...formData,
+            organicCert: (formData.organicCert === "Keine" || formData.organicCert === "" )? null : formData.organicCert,
+            // images: finalImages, // Use the final images array
+        };
+        console.log('Data for product update: ', updatedProduct);
+
+        try {
+            const response = await api.patch( `/admin/products/${productId}`, updatedProduct );
+            console.log('Res PATCH product: ', response);
+
+            // If product update worked (Status 200), proceed to update variants
+            if(response.status === 200){
+                variants.forEach(async (variant) => {
+                    if( 'id' in variant ){
+                        try {
+                            const response = await api.patch( `/admin/products/${productId}/${variant.id}`, variant );
+                            console.log("Response variant update: ", response)
+                        } catch (error) {
+                            console.log("Error variant update: ", error)
+                        }
+                    }else{
+                        try {
+                            const response = await api.post( `/admin/products/${productId}/variants`, variant );
+                            console.log("Response variant creation: ", response)
+                        } catch (error) {
+                            console.log("Error variant creation: ", error)
+                        }
+                        
+                    }
+                });
+                navigate(`/admin/products`)
+            }
+            
+        } catch (error) {
+            if (typeof error === "object" && error !== null && "response" in error) {
+                // @ts-ignore
+                console.log('Error in product update: ', error.response?.data?.errors);
+            } else {
+                console.log('Error in product update: ', error);
             }
             // navigate('/error');
         }
@@ -265,7 +396,8 @@ function ProductForm({formType, productId}: ProductFormProps) {
                 gap: "30px"
             }}
             component="form"
-            onSubmit={handleSubmit}
+            // onSubmit={handleSubmit}
+            onSubmit={formType === "create" ? handleProductCreation : handleProductUpdate}
             noValidate
         >
             <div className="flex gap-[50px]">
@@ -308,7 +440,7 @@ function ProductForm({formType, productId}: ProductFormProps) {
                                 onMouseDown={(e) => e.stopPropagation()} 
                             >
                             {selected.map((value) => (
-                                <Chip key={value} label={value} onDelete={() => handleChipDelete(value)}   />
+                                <Chip key={value} label={value} onDelete={() => deleteSelectedChip(value)}   />
                             ))}
                             </Box>
                         )}
@@ -326,12 +458,12 @@ function ProductForm({formType, productId}: ProductFormProps) {
             }
 
             <FormControl fullWidth >
-                <FormLabel htmlFor="description">
+                <FormLabel htmlFor="descriptionMd">
                     Beschreibung
                 </FormLabel>
                 <OutlinedInput
-                    id="description"
-                    name="description"
+                    id="descriptionMd"
+                    name="descriptionMd"
                     type="text"
                     placeholder="Z. B. Schonend getrocknete Blüten, ideal für aromatische Aufgüsse..."
                     size="small" //makes the placeholder look closer to the top border of the input
