@@ -92,12 +92,14 @@ export default function FullFeaturedCrudGrid() {
           name: product.name,
           latinName: product.latinName,
           slug: product.slug,
-          descriptionMd: product.descriptionMd,
+          descriptionMd: product.descriptionMd !== ""? `${product.descriptionMd.slice(0, 20)}${ product.descriptionMd.length > 20? `...`: ``}` : "❌" ,
           active: product.active ? "✅" : "❌",
           bulkGrams: product.bulkGrams,
           reorderAtGrams: product.reorderAtGrams,
           organicCert: product.organicCert,
           originCountry: product.originCountry,
+          images: product.images.length > 0 ? "✅" : "❌",
+          variants: product.variants.length > 0 ? product.variants.length : "❌",
           // course_id: typeof product.course === "object" ? product.course._id : product.course,
 
         })))
@@ -178,13 +180,15 @@ export default function FullFeaturedCrudGrid() {
     // { field: 'id', headerName: 'ID', width: 90},
     { field: 'name', headerName: 'Name', width: 150, editable: true },
     { field: 'latinName', headerName: 'Latin name', width: 100 },
-    { field: 'descriptionMd', headerName: 'Beschreibung', width: 250 },
+    { field: 'descriptionMd', headerName: 'Beschreibung', width: 150 },
     { field: 'bulkGrams', headerName: 'Lager bestand (g)', type: 'number', width: 75 },
     { field: 'reorderAtGrams', headerName: 'Mindestbestand (g)', type: 'number', width: 75 },
     // { field: 'originCountry', headerName: 'Herkunft', width: 110 },
     // { field: 'organicCert', headerName: 'Bio', width: 50 },
     { field: 'slug', headerName: 'URL', width: 90, editable: false },
     { field: 'active', headerName: 'Sichtbar im Shop', width: 90, editable: false },
+    { field: 'images', headerName: 'Bild verfügbar', width: 90, editable: false },
+    { field: 'variants', headerName: 'Verfügbare Varianten', width: 100, editable: false },
     {
       field: 'actions',
       type: 'actions',
@@ -258,7 +262,7 @@ export default function FullFeaturedCrudGrid() {
           onRowModesModelChange={handleRowModesModelChange}
           onRowEditStop={handleRowEditStop}
           processRowUpdate={processRowUpdate}
-          slots={{ toolbar: EditToolbar }}
+          // slots={{ toolbar: EditToolbar }}
           slotProps={{
             toolbar: { setRows, setRowModesModel },
           }}
