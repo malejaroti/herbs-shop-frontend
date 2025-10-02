@@ -13,7 +13,6 @@ type ProductCardProps = {
 }
 
 function ProductCard({ product }: ProductCardProps) {
-    console.log("Product to render in card: ", product)
     return (
         <>
             <Card sx={{ width: 320, borderColor: 'gray.main' }}

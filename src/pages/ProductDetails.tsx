@@ -52,7 +52,7 @@ function ProductDetails() {
       <PageShell>
         <div className="all-content flex flex-col items-center ">
           <div className="product-info flex gap-[50px]" >
-            <div className="image">
+            <div className="image max-w-[500px]">
               <img src={product?.images[0].url} alt={product?.images[0].alt} />
             </div>
 

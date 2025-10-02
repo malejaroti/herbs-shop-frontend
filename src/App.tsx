@@ -20,13 +20,13 @@ function App() {
 
   return (
     <>
-      <div className="flex min-h-screen bg-white-500">
+      <div className="flex w-screen min-h-screen bg-white-500">
         <div className="flex flex-col flex-1">
           {/* <Navbar /> */}
           <ResponsiveAppBar />
 
           {/* Main container */}
-          <main className="w-screen flex-1 bb-red px-10">
+          <main className="">
             {/* <div className='central-section bb-black h-full w-[50%] m-auto'> */}
             <Routes>
               {/* <Route path="/" element={<Home />} /> */}
