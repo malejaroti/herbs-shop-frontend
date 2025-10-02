@@ -92,7 +92,7 @@ export default function FullFeaturedCrudGrid() {
           name: product.name,
           latinName: product.latinName,
           slug: product.slug,
-          descriptionMd: product.descriptionMd !== ""? `${product.descriptionMd.slice(0, 20)}${ product.descriptionMd.length > 20? `...`: ``}` : "❌" ,
+          descriptionMd: product.descriptionMd !== ""? `${product.descriptionMd.slice(0, 20)}${ product.descriptionMd.length > 20? `...`: ``}` : "⚠️" ,
           active: product.active ? "✅" : "❌",
           bulkGrams: product.bulkGrams,
           reorderAtGrams: product.reorderAtGrams,
