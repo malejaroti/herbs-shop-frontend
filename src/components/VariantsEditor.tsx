@@ -1,5 +1,5 @@
 // components/VariantsEditor.tsx
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {  Box, TextField, Select, MenuItem, Switch,
   IconButton, Typography, Button, FormControl, InputLabel
 } from "@mui/material";
@@ -24,6 +24,13 @@ const emptyVariant: ProductVariantDTO = {
 
 export default function VariantsEditor({ value, onChange }: Props) {
   const [local, setLocal] = useState<ProductVariantDTO[]>(value.length ? value : [emptyVariant]);
+
+  // Add useEffect to sync local state when value prop changes
+  useEffect(() => {
+    if (value.length > 0) {
+      setLocal(value);
+    }
+  }, [value]);
 
   const commit = (next: ProductVariantDTO[]) => {
     setLocal(next);
