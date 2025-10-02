@@ -33,9 +33,9 @@ export default function ImageUploader({
 
   const previewUrl = file ? URL.createObjectURL(file): ""
   useEffect(() => {
-    console.log("Mounted Image Uploader component or updated previewURL", previewUrl)
+    // console.log("Mounted Image Uploader component or updated previewURL", previewUrl)
     return () => {
-      console.log("Unmounted component", previewUrl)
+      // console.log("Unmounted component", previewUrl)
       if (previewUrl) URL.revokeObjectURL(previewUrl);
     };
   }, [previewUrl]);
