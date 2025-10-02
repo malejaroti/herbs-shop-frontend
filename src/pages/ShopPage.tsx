@@ -55,7 +55,7 @@ function ShopPage() {
           </Box>
 
           {/* Products  gallery container */}
-          <Box sx={{}}>
+          <Box sx={{display:'flex',  flexWrap:'wrap', gap:'40px'}} >
             {allProducts.length >= 0 &&
               allProducts.map(eachProduct => (
                 <ProductCard key={eachProduct.id} product={eachProduct} />

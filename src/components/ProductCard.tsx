@@ -18,7 +18,7 @@ function ProductCard({ product }: ProductCardProps) {
         <>
             <Card sx={{ width: 320, borderColor: 'gray.main' }}
             >
-                <CardActionArea component={Link} to={`/${product.slug}`}>
+                <CardActionArea component={Link} to={`/${product.slug}`} sx={{ height: '100%' }}>
                     <CardMedia
                         component="img"
                         image={
@@ -27,6 +27,13 @@ function ProductCard({ product }: ProductCardProps) {
                                 : undefined
                         }
                         alt="alt"
+                        sx={{
+                            maxHeight: 200,
+                            // maxWidth:400,
+                            objectFit: 'contain',
+                            // backgroundColor: '#f5f5f5',
+                            padding: '2px 10px'
+                            }}
                     >
                     </CardMedia>
                     <CardContent>
