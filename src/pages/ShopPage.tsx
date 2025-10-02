@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactEventHandler } from "react";
 import api from "../services/config.services";
 import ProductCard from "../components/ProductCard";
-import type { Product } from "../types/Product";
+import { Product } from "../types/Product";
 import PageShell from "../components/layout/PageShell";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";

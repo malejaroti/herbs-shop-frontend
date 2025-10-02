@@ -17,7 +17,7 @@ import Alert from '@mui/material/Alert';
 
 import { useNavigate, useParams } from "react-router"
 import { useEffect, useState } from "react"
-import type { Category, Product, ProductCreateDTO, ProductVariant, ProductVariantDTO } from "../types/Product"
+import { Category, Product, ProductCreateDTO, ProductVariant, ProductVariantDTO } from "../types/Product"
 import PageShell from "./layout/PageShell"
 import VariantsEditor from "./VariantsEditor"
 import ImageUploader from "./ImageUploader"

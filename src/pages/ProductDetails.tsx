@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { Product, ProductVariant } from "../types/Product";
+import { Product, ProductVariant } from "../types/Product";
 import api from "../services/config.services";
 import PageShell from "../components/layout/PageShell";
 import { useParams } from "react-router";

@@ -9,7 +9,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import DeleteOutline from '@mui/icons-material/DeleteOutline';
-import type { IImage } from "../types/Product"
+import { IImage } from "../types/Product"
 
 
 type ImageUploaderProps = {

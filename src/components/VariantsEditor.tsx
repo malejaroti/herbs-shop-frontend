@@ -18,7 +18,7 @@ import {
 // IMPORTANT: use Grid2 if you want the `size` prop like size={{ xs: 12, md: 3 }}
 import Grid from "@mui/material/Grid";
 import { Delete as DeleteIcon, Add as AddIcon } from "@mui/icons-material";
-import type { ProductVariant, ProductVariantDTO } from "../types/Product";
+import { ProductVariant, ProductVariantDTO } from "../types/Product";
 
 /**
  * A single source of truth, stateless VariantsEditor.

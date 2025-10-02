@@ -21,7 +21,7 @@ import {
   ToolbarButton,
 } from '@mui/x-data-grid';
 
-import type { Product } from '../types/Product';
+import {Product} from '../types/Product';
 import api from '../services/config.services';
 import { useNavigate } from 'react-router';
 import { useCallback, useEffect, useState } from 'react';

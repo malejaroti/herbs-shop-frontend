@@ -4,12 +4,8 @@ import { Link as RouterLink } from 'react-router';
 import Button from '@mui/material/Button';
 import PageShell from "../components/layout/PageShell";
 import { Typography } from "@mui/material";
-import { type Product } from "../types/Product";
-import MuiDataGrid from "../components/MuiDataGrid";
-import { DataGrid, type GridColDef } from '@mui/x-data-grid';
+import { Product } from "../types/Product";
 import FullFeaturedCrudGrid from "../components/DataGridActions";
-
-
 
 function AdminProducts() {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
