@@ -1,4 +1,4 @@
-type Image = {
+export interface IImage {
     url: string;
     alt: string;
 }
@@ -32,7 +32,7 @@ export type Product = {
     active: boolean
     variants: ProductVariant[] | ProductVariantDTO[]
     categories: Category[]
-    images: Image[]
+    images: IImage[]
 }
 
 export type ProductCreateDTO = Omit<Product, 'id'>
