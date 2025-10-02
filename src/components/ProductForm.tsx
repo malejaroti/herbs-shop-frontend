@@ -190,58 +190,22 @@ function ProductForm({formType, productId}: ProductFormProps) {
         );
     };
 
-    const handleFileUpload = async (file: File) => {
-        console.log('The file to be uploaded is: ', file);
-        setIsUploading(true); // to start the loading animation
-        const uploadData = new FormData(); // images and other files need to be sent to the backend in a FormData
-        uploadData.append('image', file);
-        console.log('The upload data to be passed to Backend is: ', uploadData);
-
-        try {
-            const response = await api.post('/admin/upload', uploadData);
-            // backend sends the image to the frontend => res.json({ imageUrl: req.file.path });
-            console.log('Response from endpoint POST upload: ', response);
-            setIsUploading(false); // to stop the loading animation
-            // Return the image URL instead of updating state here
-            return response.data.imageUrl;
-        } catch (error) {
-            setIsUploading(false);
-            setErrorMessageServer(typeof error === "string" ? error : (error instanceof Error ? error.message : JSON.stringify(error)))
-            // navigate('/error');
-            // throw error; // Re-throw to handle in handleSubmit
-        }
-    };
-
+    
     const handleProductCreation = async (event: React.FormEvent) => {
         event.preventDefault();
-
-        let uploadedImageUrl = null;
-
-        // Wait for file upload to complete before creating the item
-        if (file !== null) {
-        try {
-            uploadedImageUrl = await handleFileUpload(file);
-        } catch (error) {
-            console.error('Image upload failed:', error);
-            setErrorMessageServer("The product will be created without an image")
-            // set availability to false because a product without an image should not be shown in store ? 
-            // return; // Stop submission if image upload fails
-        }
-        }
-
-        // Build the images array including any newly uploaded image
-        const finalImages = uploadedImageUrl
-        ? [...formData.images, {"url":uploadedImageUrl, "alt":formData.name}]
-        : formData.images;
+        console.log("Clicked on create product button")
+        const finalImages = await buildFinalImages();
+        const willProductBeVisibleInStore: boolean = variants.length > 0 && finalImages.length > 0
 
         const newProduct = {
             ...formData,
             variants,
             organicCert: formData.organicCert === "Keine" ? null : formData.organicCert,
             images: finalImages, // Use the final images array
+            active: willProductBeVisibleInStore
         };
         console.log('New product to be created: ', newProduct);
-
+        
         try {
             const response = await api.post( `/admin/products/`, newProduct );
             console.log('Res POST new product: ', response);
@@ -266,6 +230,28 @@ function ProductForm({formType, productId}: ProductFormProps) {
                 console.log('Error in the creation of a new product: ', error);
             }
             // navigate('/error');
+        }
+    };
+    
+    const handleFileUpload = async (file: File) => {
+        console.log('The file to be uploaded is: ', file);
+        setIsUploading(true); // to start the loading animation
+        const uploadData = new FormData(); // images and other files need to be sent to the backend in a FormData
+        uploadData.append('image', file);
+        console.log('The upload data to be passed to Backend is: ', uploadData);
+
+        try {
+            const response = await api.post('/admin/upload', uploadData);
+            // backend sends the image to the frontend => res.json({ imageUrl: req.file.path });
+            console.log('Response from endpoint POST upload: ', response);
+            setIsUploading(false); // to stop the loading animation
+            // Return the image URL instead of updating state here
+            return response.data.imageUrl;
+        } catch (error) {
+            setIsUploading(false);
+            setErrorMessageServer(typeof error === "string" ? error : (error instanceof Error ? error.message : JSON.stringify(error)))
+            // navigate('/error');
+            // throw error; // Re-throw to handle in handleSubmit
         }
     };
 
@@ -317,14 +303,15 @@ function ProductForm({formType, productId}: ProductFormProps) {
 
     const handleProductUpdate = async (event: React.FormEvent) => {
         event.preventDefault();
-        console.log("Click on save product update")
-        // console.log("Variants:", variants)
-        console.log("FormData before :", formData)
+        console.log("Clicked on save product update")
+        const finalImages = await buildFinalImages();
+        const willProductBeVisibleInStore: boolean = variants.length > 0 && finalImages.length > 0
 
         const updatedProduct = {
             ...formData,
             organicCert: (formData.organicCert === "Keine" || formData.organicCert === "" )? null : formData.organicCert,
-            // images: finalImages, // Use the final images array
+            images: finalImages, // Use the final images array
+            active: willProductBeVisibleInStore
         };
         console.log('Data for product update: ', updatedProduct);
 
@@ -450,8 +437,10 @@ function ProductForm({formType, productId}: ProductFormProps) {
               </FormControl>
 
             </div>
-            
-            <ImageUploader onFileSelect={setFile} />
+            <ImageUploader 
+                onFileSelect={setFile} 
+                 {...(formData.images[0] ? { previousImage: formData.images[0] } : {})} // spread syntax to conditionally add prop
+            />
             {errorMessageServer !== ""
                 ? <Alert severity="error"> Bild-Upload fehlgeschlagen. Error: {errorMessageServer} </Alert>
                 : null
