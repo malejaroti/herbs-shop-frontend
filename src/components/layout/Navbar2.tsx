@@ -11,11 +11,11 @@ import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
-import appLogo from '../../assets/julys-garten-logo.png'
+// import appLogo from '../../assets/julys-garten-logo.png'
+import appLogo from '../../assets/page-icon.julys-garten.png'
 import defaultAvatar from "../../assets/default-avatar.jpg"
 import { useAuth } from '../../context/auth.context';
 import { useEffect, useState } from 'react';
-// import appLogo from '../assets/julys-garten-logo.svg'
 
 type PageLink = {
     pageName: string
@@ -24,11 +24,11 @@ type PageLink = {
 const AdminPages: PageLink[] = [
     { pageName: 'Shop', path: '/shop' },
     { pageName: 'Manage Products', path: '/admin/products' },
-    { pageName: 'Orders', path: '/admin/orders' }
+    // { pageName: 'Orders', path: '/admin/orders' }
 ]
 const CustomerPages: PageLink[] = [
     { pageName: 'Shop', path: '/shop' },
-    { pageName: 'Über mich', path: '/about' },
+    { pageName: 'Über July', path: '/about' },
 ]
 
 function ResponsiveAppBar() {
@@ -78,37 +78,57 @@ function ResponsiveAppBar() {
         <AppBar position="static" elevation={0}>
             <Container maxWidth="xl">
                 <Toolbar disableGutters sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    {/* Logo */}
-                    <Box
-                        component="img"
-                        src={appLogo}
-                        alt="July's Garten Logo"
-                        sx={{
-                            display: { xs: 'none', md: 'flex' },
-                            height: 80, // ajusta el tamaño según el navbar
-                            mr: 2,
+                    <Box sx={{
+                            display:'flex',
+                            gap:'5px', 
+                            alignItems:'center'
                         }}
-                    />
+                    >
+                        {/* Logo */}
+                        <Box
+                            component="img"
+                            src={appLogo}
+                            alt="July's Garten Logo"
+                            sx={{
+                                display: 'flex',
+                                height: 80,
+                            }}
+                        />
 
-                    {/* Text for the website name in case the logo does not have the name already*/}
-                    {/* <Typography
-                    variant="h6"
-                    noWrap
-                    component="a"
-                    href="#app-bar-with-responsive-menu"
-                    sx={{
-                    mr: 2,
-                    display: { xs: 'none', md: 'flex' },
-                    fontFamily: 'monospace',
-                    fontWeight: 700,
-                    letterSpacing: '.3rem',
-                    color: 'inherit',
-                    textDecoration: 'none',
-                    }}
-                >
-                    LOGO
-                </Typography> */}
+                        {/* Text for the website name. Use in case the logo does not have the name already*/}
+                        <Box sx={{
+                                display: 'flex',
+                                flexDirection:'column'
+                            }}>
 
+                            <Typography
+                                variant="h6"
+                                noWrap
+                                sx={{
+                                    mr: 2,
+                                    fontFamily: 'monospace',
+                                    fontWeight: 700,
+                                    letterSpacing: '.3rem',
+                                    color: 'inherit',
+                                }}
+                            >
+                                JULYs GARTEN
+                            </Typography>
+                            <Typography
+                                variant="body2"
+                                noWrap
+                                sx={{
+                                    mr: 2,
+                                    fontFamily: 'monospace',
+                                    letterSpacing: '.2rem',
+                                    color: 'inherit',
+                                }}
+                            >
+                                Kräuter & Gewürze
+                            </Typography>
+                        </Box>
+                    </Box>
+                    
                     <Box sx={{ display: { xs: 'flex', md: 'none' } }}>
                         <IconButton
                             size="large"
@@ -149,35 +169,9 @@ function ResponsiveAppBar() {
                             ))}
                         </Menu>
                     </Box>
-                    <Box
-                        component="img"
-                        src={appLogo}
-                        alt="July's Garten Logo"
-                        sx={{
-                            display: { xs: 'flex', md: 'none' },
-                            alignSelf: 'center',
-                            height: 70,
-                            mr: 2,
-                        }}
-                    />
-                    {/* <Typography
-                variant="h5"
-                noWrap
-                component="a"
-                href="#app-bar-with-responsive-menu"
-                sx={{
-                mr: 2,
-                display: { xs: 'flex', md: 'none' },
-                flexGrow: 1,
-                fontFamily: 'monospace',
-                fontWeight: 700,
-                letterSpacing: '.3rem',
-                color: 'inherit',
-                textDecoration: 'none',
-                }}
-            >
-                July's Garten
-            </Typography> */}
+
+                    
+
                     <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, justifyContent: 'space-evenly' }}>
                         {pages.map((page) => (
                             <Button
@@ -187,6 +181,7 @@ function ResponsiveAppBar() {
                                 onClick={handleCloseNavMenu}
                                 sx={{
                                     my: 2,
+                                    fontSize: '1.1rem',
                                     textAlign: 'center',
                                     color: 'white',
                                     display: 'block',
