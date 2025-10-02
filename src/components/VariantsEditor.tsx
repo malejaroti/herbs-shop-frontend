@@ -1,145 +1,243 @@
 // components/VariantsEditor.tsx
-import { useEffect, useState } from "react";
-import {  Box, TextField, Select, MenuItem, Switch,
-  IconButton, Typography, Button, FormControl, InputLabel
+import * as React from "react";
+import {
+  Box,
+  TextField,
+  Select,
+  MenuItem,
+  Switch,
+  IconButton,
+  Typography,
+  Button,
+  FormControl,
+  InputLabel,
+  FormHelperText,
+  Divider,
+  Stack,
 } from "@mui/material";
-import Grid from "@mui/material/Grid"
-
+// IMPORTANT: use Grid2 if you want the `size` prop like size={{ xs: 12, md: 3 }}
+import Grid from "@mui/material/Grid";
 import { Delete as DeleteIcon, Add as AddIcon } from "@mui/icons-material";
-import type { ProductVariantDTO } from "../types/Product";
+import type { ProductVariant, ProductVariantDTO } from "../types/Product";
+
+/**
+ * A single source of truth, stateless VariantsEditor.
+ * - Renders from `value` only
+ * - Emits changes via `onChange(next)`
+ * - No internal mirrors, no "commit", no "rows"
+ */
+
+// Allow both the DTO (no id/productId/sku) and the persisted entity
+type VariantRow = ProductVariantDTO | ProductVariant;
+type EditableKeys = keyof ProductVariantDTO; // fields we actually edit in the UI
 
 type Props = {
-  value: ProductVariantDTO[];
-  onChange: (next: ProductVariantDTO[]) => void;
+  value: VariantRow[];
+  onChange: (next: VariantRow[]) => void;
+  // Optional UX niceties:
+  title?: string;
+  allowEmpty?: boolean; // if false, delete is disabled when length === 1
 };
 
-const emptyVariant: ProductVariantDTO = {
+// A convenient starter for new rows
+const EMPTY_VARIANT: ProductVariantDTO = {
   name: "",
   packSizeGrams: 0,
-  price: 0,              // euros (e.g., 7.5)
+  price: 0,
   currency: "EUR",
   taxClass: "REDUCED",
   active: true,
 };
 
-export default function VariantsEditor({ value, onChange }: Props) {
-  const [local, setLocal] = useState<ProductVariantDTO[]>(value.length ? value : [emptyVariant]);
+// Safe number parser for text/number inputs
+const toNumber = (v: string) => (v.trim() === "" ? 0 : Number(v));
 
-  // Add useEffect to sync local state when value prop changes
-  useEffect(() => {
-    if (value.length > 0) {
-      setLocal(value);
-    }
-  }, [value]);
+export default function VariantsEditor({
+  value,
+  onChange,
+  title = "Varianten",
+  allowEmpty = false,
+}: Props) {
+  // --- Immutable helpers that produce the next array and call onChange ---
 
-  const commit = (next: ProductVariantDTO[]) => {
-    setLocal(next);
-    onChange(next);
-  };
+  // Normalize incoming value to an array to avoid runtime errors if parent passes an unexpected shape
+  const rows: VariantRow[] = Array.isArray(value) ? value : [];
 
-  const addRow = () => commit([...local, { ...emptyVariant }]);
-  const removeRow = (idx: number) => commit(local.filter((_, i) => i !== idx));
+  const addVariant = React.useCallback(() => {
+    onChange([...(rows ?? []), { ...EMPTY_VARIANT }]);
+  }, [onChange, rows]);
 
-  const updateField = <K extends keyof ProductVariantDTO>(idx: number, key: K, v: ProductVariantDTO[K]) => {
-    const next = [...local];
-    next[idx] = { ...next[idx], [key]: v };
-    commit(next);
-  };
+  const removeVariant = React.useCallback(
+    (idx: number) => {
+      const next = rows.filter((_, i) => i !== idx);
+      onChange(next);
+    },
+    [onChange, rows]
+  );
+
+  const updateVariant = React.useCallback(
+    <K extends EditableKeys>(idx: number, key: K, nextValue: ProductVariantDTO[K]) => {
+      const next = rows.map((row, i) => (i === idx ? { ...(row as VariantRow), [key]: nextValue } : row));
+      onChange(next);
+    },
+    [onChange, rows]
+  );
+
+  // --- UI ---
+
+  const hasRows = rows.length > 0;
 
   return (
     <Box sx={{ mt: 3 }}>
-      <Box sx={{ display: "flex", alignItems: "center", mb: 1, gap: 1 }}>
-        <Typography variant="h6">Varianten</Typography>
-        <Button startIcon={<AddIcon />} size="small" onClick={addRow}>
+      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+        <Typography variant="h6">{title}</Typography>
+        <Button startIcon={<AddIcon />} size="small" onClick={addVariant}>
           Variante hinzufügen
         </Button>
-      </Box>
+      </Stack>
 
-      {local.map((row, idx) => (
-        <Box key={idx} sx={{ p: 2, border: "1px solid", borderColor: "divider", borderRadius: 2, mb: 2 }}>
-          <Grid container spacing={2} alignItems="center">
-            <Grid size={{ xs: 12, md: 3 }}>
-              <TextField
-                label="Variantenname"
-                placeholder='z. B. "100 g"'
-                fullWidth
-                value={row.name}
-                onChange={(e) => updateField(idx, "name", e.target.value)}
-                required
-              />
-            </Grid>
-
-            <Grid size={{ xs: 12, md: 3 }}>
-              <TextField
-                label="Packungsgröße (g)"
-                type="number"
-                fullWidth
-                inputProps={{ min: 1 }}
-                value={row.packSizeGrams}
-                onChange={(e) => updateField(idx, "packSizeGrams", Number(e.target.value))}
-                required
-              />
-            </Grid>
-
-            <Grid size={{ xs: 12, md: 3 }}>
-              <TextField
-                label="Preis (EUR)"
-                type="number"
-                fullWidth
-                inputProps={{ step: "0.01", min: 0 }}
-                value={row.price}
-                onChange={(e) => updateField(idx, "price", Number(e.target.value))}
-                required
-                helperText="Bruttopreis, z. B. 7.50"
-              />
-            </Grid>
-
-            <Grid size={{ xs: 12, md: 3 }}>
-              <FormControl fullWidth>
-                <InputLabel id={`currency-${idx}`}>Währung</InputLabel>
-                <Select
-                  labelId={`currency-${idx}`}
-                  label="Währung"
-                  value={row.currency}
-                  onChange={(e) => updateField(idx, "currency", e.target.value as ProductVariantDTO["currency"])}
-                >
-                  <MenuItem value="EUR">EUR</MenuItem>
-                  <MenuItem value="USD">USD</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-
-            <Grid size={{ xs: 12, md: 3 }}>
-              <FormControl fullWidth>
-                <InputLabel id={`tax-${idx}`}>Steuerklasse</InputLabel>
-                <Select
-                  labelId={`tax-${idx}`}
-                  label="Steuerklasse"
-                  value={row.taxClass}
-                  onChange={(e) => updateField(idx, "taxClass", e.target.value as ProductVariantDTO["taxClass"])}
-                >
-                  <MenuItem value="REDUCED">Ermäßigt</MenuItem>
-                  <MenuItem value="STANDARD">Standard</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-
-            <Grid size={{ xs: 12, md: 3 }} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <Switch
-                checked={row.active}
-                onChange={(e) => updateField(idx, "active", e.target.checked)}
-              />
-              <Typography variant="body2">Aktiv</Typography>
-            </Grid>
-
-            <Grid size={{ xs: 12, md: 'auto'}}>
-              <IconButton aria-label="remove variant" onClick={() => removeRow(idx)} disabled={local.length === 1}>
-                <DeleteIcon />
-              </IconButton>
-            </Grid>
-          </Grid>
+      {!hasRows ? (
+        // Empty state (no internals—parent owns the array)
+        <Box
+          sx={{
+            p: 2,
+            border: "1px dashed",
+            borderColor: "divider",
+            borderRadius: 2,
+            textAlign: "center",
+          }}
+        >
+          <Typography variant="body2" sx={{ mb: 1 }}>
+            Noch keine Varianten angelegt.
+          </Typography>
+          <Button startIcon={<AddIcon />} onClick={addVariant}>
+            Erste Variante hinzufügen
+          </Button>
         </Box>
-      ))}
+      ) : (
+        rows.map((row, idx) => {
+          const canDelete = allowEmpty ? true : rows.length > 1;
+
+          return (
+            <Box
+              key={idx}
+              sx={{
+                p: 2,
+                border: "1px solid",
+                borderColor: "divider",
+                borderRadius: 2,
+                mb: 2,
+                backgroundColor: "background.paper",
+              }}
+            >
+              <Grid container spacing={2} alignItems="center">
+                {/* Name */}
+                <Grid size={{ xs: 12, md: 3 }}>
+                  <TextField
+                    label="Variantenname"
+                    placeholder='z. B. "100 g"'
+                    fullWidth
+                    value={row.name}
+                    onChange={(e) => updateVariant(idx, "name", e.target.value)}
+                    required
+                  />
+                </Grid>
+
+                {/* Pack size (g) */}
+                <Grid size={{ xs: 12, md: 3 }}>
+                  <TextField
+                    label="Packungsgröße (g)"
+                    type="number"
+                    fullWidth
+                    inputProps={{ min: 1 }}
+                    value={row.packSizeGrams}
+                    onChange={(e) => updateVariant(idx, "packSizeGrams", toNumber(e.target.value))}
+                    required
+                  />
+                </Grid>
+
+                {/* Price */}
+                <Grid size={{ xs: 12, md: 3 }}>
+                  <TextField
+                    label="Preis"
+                    type="number"
+                    fullWidth
+                    inputProps={{ step: "0.01", min: 0 }}
+                    value={row.price}
+                    onChange={(e) => updateVariant(idx, "price", toNumber(e.target.value))}
+                    required
+                    helperText="Bruttopreis (z. B. 7.50)"
+                  />
+                </Grid>
+
+                {/* Currency */}
+                <Grid size={{ xs: 12, md: 3 }}>
+                  <FormControl fullWidth>
+                    <InputLabel id={`currency-${idx}`}>Währung</InputLabel>
+                    <Select
+                      labelId={`currency-${idx}`}
+                      label="Währung"
+                      value={row.currency}
+                      onChange={(e) =>
+                        updateVariant(idx, "currency", e.target.value as ProductVariantDTO["currency"])
+                      }
+                    >
+                      <MenuItem value="EUR">EUR</MenuItem>
+                      <MenuItem value="USD">USD</MenuItem>
+                    </Select>
+                    <FormHelperText>Standard: EUR</FormHelperText>
+                  </FormControl>
+                </Grid>
+
+                {/* Tax class */}
+                <Grid size={{ xs: 12, md: 3 }}>
+                  <FormControl fullWidth>
+                    <InputLabel id={`tax-${idx}`}>Steuerklasse</InputLabel>
+                    <Select
+                      labelId={`tax-${idx}`}
+                      label="Steuerklasse"
+                      value={row.taxClass}
+                      onChange={(e) =>
+                        updateVariant(
+                          idx,
+                          "taxClass",
+                          e.target.value as ProductVariantDTO["taxClass"]
+                        )
+                      }
+                    >
+                      <MenuItem value="REDUCED">Ermäßigt</MenuItem>
+                      <MenuItem value="STANDARD">Standard</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+
+                {/* Active toggle */}
+                <Grid size={{ xs: 12, md: 3 }} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Switch
+                    checked={row.active}
+                    onChange={(e) => updateVariant(idx, "active", e.target.checked)}
+                  />
+                  <Typography variant="body2">Aktiv</Typography>
+                </Grid>
+
+                {/* Remove */}
+                <Grid size={{ xs: 12, md: "auto" }}>
+                  <IconButton
+                    aria-label="Variante entfernen"
+                    onClick={() => removeVariant(idx)}
+                    disabled={!canDelete}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </Grid>
+              </Grid>
+
+              {/* Optional visual separator if you later show computed info */}
+              <Divider sx={{ mt: 2 }} />
+            </Box>
+          );
+        })
+      )}
     </Box>
   );
 }
