@@ -29,7 +29,8 @@ function App() {
           <main className="w-screen flex-1 bb-red px-10">
             {/* <div className='central-section bb-black h-full w-[50%] m-auto'> */}
             <Routes>
-              <Route path="/" element={<Home />} />
+              {/* <Route path="/" element={<Home />} /> */}
+              <Route path="/" element={<ShopPage />} />
               <Route path="/shop" element={<ShopPage />} />
               <Route path="/:slug" element={<ProductDetails />} />
               <Route path="/admin/products" element={<OnlyAdmin><AdminProducts/></OnlyAdmin>} />
