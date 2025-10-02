@@ -1,7 +1,6 @@
 import './App.css'
 import { Routes, Route } from 'react-router';
 import OnlyAdmin from './components/auth/OnlyAdmin';
-import Navbar from './components/layout/Navbar'
 import AdminProducts from './pages/AdminProductsPage';
 import Home from './pages/Home';
 import SignUp from './pages/SignUp';

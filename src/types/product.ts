@@ -30,7 +30,7 @@ export type Product = {
     originCountry: string
     organicCert: string | null
     active: boolean
-    variants: ProductVariant[] | ProductVariantDTO[]
+    variants: ProductVariant[]
     categories: Category[]
     images: IImage[]
 }
