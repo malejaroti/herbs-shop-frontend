@@ -51,10 +51,10 @@ function Login() {
       email: formData.email,
       password: formData.password,
     };
-    console.log('user credentials', userCredentials);
+    // console.log('User credentials', userCredentials);
     try {
       const response = await api.post('/auth/login', userCredentials);
-      console.log('login response', response);
+      // console.log('Login response', response.status);
 
       //* the user is now authenticated
 
