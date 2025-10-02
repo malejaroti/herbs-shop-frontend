@@ -9,12 +9,14 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import DeleteOutline from '@mui/icons-material/DeleteOutline';
+import type { IImage } from "../types/Product"
+
 
 type ImageUploaderProps = {
   onFileSelect?: (file: File | null) => void;
   maxSizeMB?: number; // default 5MB
   accepted?: string; // default "image/*"
-  imageTimelineItem?: string
+  previousImage?: IImage
   label?: string; // button text
 };
 
@@ -22,8 +24,8 @@ export default function ImageUploader({
   onFileSelect,
   maxSizeMB = 5,
   accepted = 'image/*',
-  imageTimelineItem,
-  label = imageTimelineItem ? "Change Image" : 'Upload image', // If card already has an image, then change button label
+  previousImage,
+  label = previousImage ? "Bild ändern" : 'Bild hochladen', // If card already has an image, then change button label
 }: ImageUploaderProps) {
   const inputId = useId();
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -36,6 +38,7 @@ export default function ImageUploader({
     // console.log("Mounted Image Uploader component or updated previewURL", previewUrl)
     return () => {
       // console.log("Unmounted component", previewUrl)
+      // Remove URL when object is unmounted
       if (previewUrl) URL.revokeObjectURL(previewUrl);
     };
   }, [previewUrl]);
@@ -53,14 +56,14 @@ export default function ImageUploader({
       resetFileInput();
       return;
     }
-    
+    // Check image size does not exceed the max
     const maxBytes = maxSizeMB * 1024 * 1024;
     if (selectedFile.size > maxBytes) {
       setError(`Image exceeds ${maxSizeMB}MB.`);
       resetFileInput();
       return;
     }
-
+    
     setError(null);
     setFile(selectedFile);
     setIsFileSelected(true)
@@ -75,39 +78,39 @@ export default function ImageUploader({
   };
 
   return (
-    <Stack spacing={2} sx={{ alignSelf: 'center' }}>
-      <Box>
-        <input
-          id={inputId}
-          ref={inputRef}
-          type="file"
-          accept={accepted}
-          onChange={handleFileSelect}
-          style={{ display: 'none' }}
-        />
-        <label htmlFor={inputId}>
-          <Button
-            variant="outlined"
-            component="span"
-            color="primary"
-            startIcon={<PhotoCamera />}
-          >
-            {file ? 'Change image' : label}
-          </Button>
-        </label>
-        {file && (
-          <Button
-            sx={{ ml: 1 }}
-            variant="text"
-            color="error"
-            startIcon={<DeleteOutline />}
-            onClick={resetFileInput}
-          >
-            Remove
-          </Button>
-        )}
-      </Box>
-
+    <>
+    <Box>
+      <input
+        id={inputId}
+        ref={inputRef}
+        type="file"
+        accept={accepted}
+        onChange={handleFileSelect}
+        style={{ display: 'none' }}
+      />
+      <label htmlFor={inputId}>
+        <Button
+          variant="outlined"
+          component="span"
+          color="primary"
+          startIcon={<PhotoCamera />}
+        >
+          {file ? 'Change image' : label}
+        </Button>
+      </label>
+      {file && (
+        <Button
+          sx={{ ml: 1 }}
+          variant="text"
+          color="error"
+          startIcon={<DeleteOutline />}
+          onClick={resetFileInput}
+        >
+          Remove
+        </Button>
+      )}
+    </Box>
+    <Stack direction="row" spacing={2}>
       {error && (
         <Typography color="error" variant="body2">
           {error}
@@ -115,7 +118,7 @@ export default function ImageUploader({
       )}
 
       {file && (
-        <Card variant="outlined" sx={{ maxWidth: 420 }}>
+        <Card variant="outlined" sx={{ maxWidth: 200 }}>
           <CardMedia
             component="img"
             image={previewUrl}
@@ -133,19 +136,22 @@ export default function ImageUploader({
         </Card>
       )}
 
-      {imageTimelineItem && (
-        <Card variant="outlined" sx={{ maxHeight: 350, p: 2, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-          {
-            isFileSelected && <Typography variant='h6' align='center' sx={{ mb: 2 }}>Previous Image</Typography>
-          }
+      {previousImage && !file &&(
+        <Card variant="outlined" sx={{ maxWidth: 200 }}>
           <CardMedia
             component="img"
-            image={imageTimelineItem}
-            alt={imageTimelineItem}
-            sx={{ flex: 1, minHeight: 0, aspectRatio: '1 / 1', objectFit: 'contain' }}
+            image={previousImage.url}
+            alt={previousImage.alt}
+            sx={{ aspectRatio: '16 / 9', objectFit: 'contain' }}
           />
+          {/* <CardContent>
+            <Typography variant="body2" sx={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
+              <b>URL</b>: {previousImage.url}
+            </Typography>
+          </CardContent> */}
         </Card>
       )}
     </Stack>
+    </>
   );
 }
