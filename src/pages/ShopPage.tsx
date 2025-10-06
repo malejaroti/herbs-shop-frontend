@@ -39,16 +39,23 @@ function ShopPage() {
         <Box sx={{ display: "flex", flexDirection: 'column', gap: '25px' }}>
           
           {/* Filter and search box */}
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', borderRadius: '5px', p: '10px', }}>
-            <Box sx={{ minWidth: 120}}>
+          <Box sx={{ display: 'flex', justifyContent: 'center', borderRadius: '5px', p: '10px', }}>
+            <Box sx={{ minWidth: '50%'}}>
               <FormControl fullWidth >
                 {/* <InputLabel id="search-input">Produkt suchen</InputLabel> */}
                 <TextField
                   id="search-input"
-                  label="Produkt suchen"
+                  // label="Produkt suchen"
+                  placeholder="Produkt suchen"
                   value={searchedValue}
                   size="small"
                   onChange={(e) => setSearchedValue(e.target.value)}
+                  sx={{
+                    '& .MuiInputLabel-root': {
+                      textAlign: 'center',
+                      width: '100%',
+                    },
+                  }}
                 >
                 </TextField>
               </FormControl>

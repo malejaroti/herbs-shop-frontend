@@ -27,7 +27,7 @@ function ProductCard({ product }: ProductCardProps) {
                         }}>
                     <CardMedia
                         component="img"
-                        image={
+                        src={
                             product.images && product.images.length > 0
                                 ? product.images[0]?.url
                                 : undefined
@@ -38,11 +38,9 @@ function ProductCard({ product }: ProductCardProps) {
                             width: '150px',
                             mx:'auto',
                             // maxWidth:400,
-                            borderRadius: '50%',
-                            // border:1,
-                            objectFit: 'cover',
-                            // backgroundColor: '#f5f5f5',
-                            // padding: '2px 10px',
+                            // NO borderRadius; let the mask make the circle + fade
+                            display: 'block',
+                            maskImage: 'radial-gradient(circle, black 65%, transparent 69%)',
                             }}
                     >
                     </CardMedia>
