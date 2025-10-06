@@ -3,8 +3,9 @@ import CardActionArea from "@mui/material/CardActionArea"
 import CardContent from "@mui/material/CardContent"
 import CardMedia from "@mui/material/CardMedia"
 import Typography from "@mui/material/Typography"
-import { Product } from "../types/Product"
+import Box from "@mui/material/Box"
 import { Link } from "react-router"
+import { Product } from "../types/Product"
 
 
 
@@ -15,9 +16,15 @@ type ProductCardProps = {
 function ProductCard({ product }: ProductCardProps) {
     return (
         <>
-            <Card sx={{ width: 320, borderColor: 'gray.main' }}
+            <Card sx={{ width: 320, borderColor: 'gray.main', display: 'flex', flexDirection: 'column'  }}
             >
-                <CardActionArea component={Link} to={`/${product.slug}`} sx={{ height: '100%' }}>
+                <CardActionArea component={Link} to={`/${product.slug}`} 
+                    sx={{ height: '100%', 
+                            display:'flex', 
+                            flexDirection:'column',
+                            alignItems: 'stretch',
+                            flexGrow: 1 
+                        }}>
                     <CardMedia
                         component="img"
                         image={
@@ -27,49 +34,50 @@ function ProductCard({ product }: ProductCardProps) {
                         }
                         alt="alt"
                         sx={{
-                            maxHeight: 200,
+                            height: '150px',
+                            width: '150px',
+                            mx:'auto',
                             // maxWidth:400,
-                            objectFit: 'contain',
+                            borderRadius: '50%',
+                            // border:1,
+                            objectFit: 'cover',
                             // backgroundColor: '#f5f5f5',
-                            padding: '2px 10px'
+                            // padding: '2px 10px',
                             }}
                     >
                     </CardMedia>
-                    <CardContent>
-                        <Typography variant="h6" color="gray.main"
-                            sx={{
-                                // fontSize:'1.3rem',
-                                lineHeight: 1,
-                                // fontWeight: 'bold',
-                                // mb:'1rem'
-                            }}
-                        >
-                            {product.name}
-                        </Typography>
-                        <Typography
-                            // variant="cardDescription"   
-                            // variant="body1"   
-                            sx={{
-                                margin: '0.5rem auto',
-                                fontSize: '0.7rem',
-                                lineHeight: 1.3,
-                                textAlign: 'justify'
-                            }}
-                        >
-                            {product.descriptionMd}
-                        </Typography>
-                        <Typography color="gray.main" sx={{ fontSize: '1.3rem' }} >
-                            ab <span style={{ fontWeight: 'bold' }}>{product.variants[0].price} €</span>
-                        </Typography>
-                        <Typography
-                            sx={{
-                                fontSize: '0.5rem',
-                                color: "#798490",
-                                lineHeight: 0.5
-                            }}
-                        >
-                            Für {product.variants[0].packSizeGrams}g
-                        </Typography>
+                    <CardContent sx={{flexGrow: 1, display:'flex', flexDirection:'column',justifyContent:'space-between'}}>
+                        <Box sx={{flex:1}}>
+                            <Typography variant="h6" color="gray.main" sx={{ lineHeight: 1 }}>
+                               {product.name}
+                            </Typography>
+                            <Typography
+                                // variant="cardDescription"   
+                                // variant="body1"   
+                                sx={{
+                                    margin: '0.5rem auto',
+                                    fontSize: '0.7rem',
+                                    lineHeight: 1.3,
+                                    textAlign: 'justify'
+                                }}
+                            >
+                                {product.descriptionMd}
+                            </Typography>
+                        </Box>
+                        <Box>
+                            <Typography color="gray.main" sx={{ fontSize: '1.3rem' }} >
+                                ab <span style={{ fontWeight: 'bold' }}>{product.variants[0]?.price} €</span>
+                            </Typography>
+                            <Typography
+                                sx={{
+                                    fontSize: '0.7rem',
+                                    color: "#798490",
+                                    lineHeight: 0.5
+                                }}
+                            >
+                                Für {product.variants[0]?.packSizeGrams}g
+                            </Typography>
+                        </Box>
 
                     </CardContent>
                 </CardActionArea>

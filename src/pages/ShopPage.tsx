@@ -4,6 +4,7 @@ import ProductCard from "../components/ProductCard";
 import { Product } from "../types/Product";
 import PageShell from "../components/layout/PageShell";
 import Box from "@mui/material/Box";
+import Paper from "@mui/material/Paper";
 import Button from "@mui/material/Button";
 import Select from "@mui/material/Select";
 import TextField from "@mui/material/TextField";
@@ -39,13 +40,14 @@ function ShopPage() {
           
           {/* Filter and search box */}
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', borderRadius: '5px', p: '10px', }}>
-            <Box sx={{ minWidth: 120 }}>
+            <Box sx={{ minWidth: 120}}>
               <FormControl fullWidth >
                 {/* <InputLabel id="search-input">Produkt suchen</InputLabel> */}
                 <TextField
                   id="search-input"
                   label="Produkt suchen"
                   value={searchedValue}
+                  size="small"
                   onChange={(e) => setSearchedValue(e.target.value)}
                 >
                 </TextField>
@@ -55,7 +57,7 @@ function ShopPage() {
 
           {/* Products  gallery container */}
           {/* //TODO: Adjust minHeight  */}
-          <Box sx={{minHeight:'500px',display:'flex',  flexWrap:'wrap', margin:'auto', gap:'40px'}} >
+          <Box sx={{minHeight:'500px',display:'flex', flexWrap:'wrap', justifyContent:'center', margin:'auto', gap:'40px', padding:'20px', borderRadius: 3, border:'1px solid #e1dfd7'}} >
             {filteredProducts.length >= 0 &&
               filteredProducts.map(eachProduct => (
                 <ProductCard key={eachProduct.id} product={eachProduct} />
