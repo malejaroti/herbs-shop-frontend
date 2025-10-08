@@ -63,7 +63,9 @@ function ProductForm({formType, productId}: ProductFormProps) {
     const [isFetchingProduct, setIsFetchingProduct] = useState(formType === "edit");
     const [isFetchingVariants, setIsFetchingVariants] = useState(false);
     // To avoid FormData state to initially be null, initialize first with "values"  for a new product while data from product loads, in case the form is used for editing
+    const [originalProductData, setOriginalProductData] = useState<ProductCreateDTO | Product >({ ...newProduct }); 
     const [formData, setFormData] = useState<ProductCreateDTO | Product >({ ...newProduct }); 
+    const [modifiedFields, setModifiedFields] = useState({});
     const [selectedCategories, setSelectedCategories] = useState<ProductCategoriesGermanNames[]>([]);
     const [errorMessageServer, setErrorMessageServer] = useState("");
     const [helperTextTitleInput, setHelperTextTitleInput] = useState<string | null>(null);
@@ -94,12 +96,14 @@ function ProductForm({formType, productId}: ProductFormProps) {
             const response = await api.get(`/admin/products/${productId}`)
             setIsFetchingProduct(false)
             const productData = response.data;
-            console.log("Product details (no variants): ", productData);
+            setOriginalProductData(productData);
+            // console.log("Product details (no variants): ", productData);
             
-            // Process the received data before setting it to formData
+            // Process the received data before setting it to formData. Parse fields from EN to DE.
             const processedProductData = {
                 ...productData,
-                organicCert: productData.organicCert === null? "Keine": "" // Convert null to "Keine"
+                // For the OrganicCert field convert null to "Keine"
+                organicCert: productData.organicCert === null? "Keine": productData.organicCert 
             };
             console.log("Processed data to prefill form: ", processedProductData);
             
@@ -159,6 +163,11 @@ function ProductForm({formType, productId}: ProductFormProps) {
             ...prev,
             [name]: type === "number" ? Number(value) : value,
         }));
+        
+        setModifiedFields((prev) => ({
+            ...prev,
+            [name]: type === "number" ? Number(value) : value,
+        }));
     };
 
     const isGermanCategory = (v: string): v is ProductCategoriesGermanNames =>
@@ -181,6 +190,11 @@ function ProductForm({formType, productId}: ProductFormProps) {
             ...prev,
             categories: mappedCategories,
         }));
+
+        setModifiedFields((prev) => ({
+            ...prev,
+            categories: mappedCategories,
+        }));
     };
     
 
@@ -194,7 +208,7 @@ function ProductForm({formType, productId}: ProductFormProps) {
     const handleProductCreation = async (event: React.FormEvent) => {
         event.preventDefault();
         console.log("Clicked on create product button")
-        const finalImages = await buildFinalImages();
+        const finalImages = await buildImageJson();
         const willProductBeVisibleInStore: boolean = variants.length > 0 && finalImages.length > 0
 
         const newProduct = {
@@ -234,46 +248,47 @@ function ProductForm({formType, productId}: ProductFormProps) {
     };
     
     const handleFileUpload = async (file: File) => {
-        console.log('The file to be uploaded is: ', file);
-        setIsUploading(true); // to start the loading animation
-        const uploadData = new FormData(); // images and other files need to be sent to the backend in a FormData
+        // console.log('The file to be uploaded is: ', file);
+        setIsUploading(true);
+        // images and other files need to be sent to the backend in a FormData
+        const uploadData = new FormData(); 
         uploadData.append('image', file);
-        console.log('The upload data to be passed to Backend is: ', uploadData);
+        // console.log('The upload data to be passed to Backend is: ', uploadData);
 
         try {
             const response = await api.post('/admin/upload', uploadData);
             // backend sends the image to the frontend => res.json({ imageUrl: req.file.path });
-            console.log('Response from endpoint POST upload: ', response);
+            console.log('Response to POST /api/admin/upload: ', response);
+            console.log('Cloudinary URL: ', response.data.imageUrl);
             setIsUploading(false); // to stop the loading animation
             // Return the image URL instead of updating state here
             return response.data.imageUrl;
         } catch (error) {
+            console.log("Error in uploading image to cloudinary. Error: ", error)
             setIsUploading(false);
             setErrorMessageServer(typeof error === "string" ? error : (error instanceof Error ? error.message : JSON.stringify(error)))
             // navigate('/error');
-            // throw error; // Re-throw to handle in handleSubmit
         }
     };
 
-    const buildFinalImages = async (): Promise<Array<{url: string, alt: string}>> => {
-        let uploadedImageUrl = null;
-        
-        if (file !== null) {
-            try {
-                uploadedImageUrl = await handleFileUpload(file);
-            } catch (error) {
-                console.error('Image upload failed:', error);
-                setErrorMessageServer("Image upload failed");
-            }
+    const buildImageJson = async (): Promise<Array<{url: string, alt: string}>> => {
+        if(file === null){
+            return formData.images
         }
-        
-        return uploadedImageUrl
-            ? [...formData.images, {"url": uploadedImageUrl, "alt": formData.name}]
-            : formData.images;
+        let uploadedImageUrl = null;
+
+        try {
+            uploadedImageUrl = await handleFileUpload(file);
+            return [{"url": uploadedImageUrl, "alt": formData.name}]
+        } catch (error) {
+            console.error('Image upload failed:', error);
+            return formData.images
+            // setErrorMessageServer("");
+        }
     };
 
     const prepareProductData = async () => {
-        const finalImages = await buildFinalImages();
+        const finalImages = await buildImageJson();
         
         return {
             ...formData,
@@ -301,22 +316,65 @@ function ProductForm({formType, productId}: ProductFormProps) {
         }
     };
 
+    /**
+     * Handles the product update form submission.
+     *
+     * This function performs the following steps:
+     * - Prevents the default form submission behavior.
+     * - Formats image data and normalizes the organic certification field.
+     * - Determines if the product is ready to be shown in the store based on images and variants.
+     * - Prepares an object containing only the modified fields for the PATCH request.
+     * - Handles special logic for the `organicCert` field to avoid unnecessary updates.
+     * - Sends a PATCH request to update the product with the modified fields.
+     * - If the product update is successful, updates or creates product variants via PATCH or POST requests.
+     * - Navigates to the product admin page upon successful update.
+     * - Logs errors and handles error responses from the API.
+     *
+     * @param event - The form submission event.
+     */
     const handleProductUpdate = async (event: React.FormEvent) => {
         event.preventDefault();
         console.log("Clicked on save product update")
-        const finalImages = await buildFinalImages();
-        const willProductBeVisibleInStore: boolean = variants.length > 0 && finalImages.length > 0
+
+        const formattedImageData = await buildImageJson();
+        const organicCertValid = (formData.organicCert === "Keine" || formData.organicCert === "" )? null : formData.organicCert
+        
+        // Check if product is ready to be shown in store. It needs at least onw image and one variant.
+        const isProductReadyToShow: boolean = variants.length > 0 && formattedImageData.length > 0
+        const isProductVisibilityChanged = formData.active !== isProductReadyToShow
+
+        const updatesOnly: Partial<ProductCreateDTO | Product> = {
+            ...modifiedFields,
+            ...(formData.images !== formattedImageData && { images: formattedImageData }),
+            ...(isProductVisibilityChanged && { active: isProductReadyToShow }),
+        }
+        // Handle organicCert field separately
+        if ("organicCert" in modifiedFields) {
+            const currentValue = formData.organicCert;
+            const originalValue = originalProductData.organicCert;
+            
+            // If changing from "Keine" to empty string, exclude the field entirely
+            if (originalValue === null && (currentValue === "Keine" || currentValue?.trim() === "")) {
+                // It is not a real update, delete add organicCert from updatesOnly arr 
+                delete updatesOnly.organicCert;
+                console.log("Excluded organicCert from update (changed from Keine to empty)");
+            } else {
+                // Include the normalized value
+                updatesOnly.organicCert = organicCertValid
+            }
+        }
+        console.log("Product updates only: ", updatesOnly)
 
         const updatedProduct = {
             ...formData,
-            organicCert: (formData.organicCert === "Keine" || formData.organicCert === "" )? null : formData.organicCert,
-            images: finalImages, // Use the final images array
-            active: willProductBeVisibleInStore
+            organicCert: organicCertValid,
+            images: formattedImageData,
+            active: isProductReadyToShow
         };
-        console.log('Data for product update: ', updatedProduct);
+        console.log('Fully updated product: ', updatedProduct);
 
         try {
-            const response = await api.patch( `/admin/products/${productId}`, updatedProduct );
+            const response = await api.patch( `/admin/products/${productId}`, updatesOnly );
             console.log('Res PATCH product: ', response);
 
             // If product update worked (Status 200), proceed to update variants
@@ -416,6 +474,7 @@ function ProductForm({formType, productId}: ProductFormProps) {
                         Kategorie
                     </FormLabel>
                     <Select
+
                         labelId="categorySelector"
                         id="users-selector-multiple-chip"
                         multiple
