@@ -19,7 +19,7 @@ function App() {
 
   return (
     <>
-      <div className="flex w-screen min-h-screen bg-white-500">
+      <div className="flex max-w-screen min-h-screen bg-slate-300">
         <div className="flex flex-col flex-1">
           {/* <Navbar /> */}
           <ResponsiveAppBar />
