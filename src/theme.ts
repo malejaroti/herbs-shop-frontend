@@ -19,11 +19,14 @@ declare module '@mui/material/styles' {
 const theme = createTheme({
   typography: {
     fontFamily: [
-      'Fredoka',
-      // 'Poppins',
-      // 'Helvetica',
-      // 'Arial',
-      'consolas',
+      '"SF Mono"',
+      'SFMono-Regular', 
+      'Menlo',
+      'Monaco',
+      'Consolas',
+      '"Liberation Mono"',
+      '"Courier New"',
+      'monospace'
     ].join(','),
   },
   palette: {
