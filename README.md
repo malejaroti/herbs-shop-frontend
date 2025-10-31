@@ -1,69 +1,152 @@
-# React + TypeScript + Vite
+# Herbs Shop Frontend 🌿
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A React + TypeScript SPA for a herbs & spices shop. Built with Vite and MUI, talking to a Node/Express + Prisma + PostgreSQL API.
 
-Currently, two official plugins are available:
+Backend repo: [herbs-shop-server](https://github.com/malejaroti/my-life-timelines-backend)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+<div align="center">
+  <img src="public/Herbs-e-commerce-Screenshot_Shop_page.png" alt="Screenshot of shop page" width="300" />
+  <img src="public/Herbs-e-commerce-Screenshot_Product_details.png" alt="Screenshot of product details page" width="300" />
+  <img src="public/Herbs-e-commerce-Screenshot_Product_admin_panel.png" alt="Screenshot of product administration panel" width="300" />
+  <img src="public/Herbs-e-commerce-Screenshot_Product_edit_form.png" alt="Screenshot of page with form for editing products info " width="300" />
+</div>
 
-## Expanding the ESLint configuration
+## 🧩 Project Context
+This project was developed as an assignment for the final complementary module of a Web Development Bootcamp offered by Ironhack.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+It was built within a few days to demonstrate proficiency with **TypeScript**, **PostgreSQL**, and **Prisma**. (For the last two, check [backend repo](https://github.com/malejaroti/my-life-timelines-backend).)
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## 🚀 Core Features
+- **Shop page**: Catalog browsing and search by product name.
+- **Product details page**: Dedicated product information page with support for different package sizes and pricing (i.e. different variants)
+- **Authentication:** Auth UI for admin login.
+- **Admin Controls**: Product management panel support easy creation, edition and deletion of products or from their variants.
+- **Image Management**: Product image upload functionality with cloud-storage in Cloudinary.
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+- ℹ️ Not yet implemented: cart/checkout (Stripe), orders, user profile.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## 🛠️ Tech Stack
+
+- **Frontend Framework**: React 19 with TypeScript
+- **Build Tool**: Vite
+- **Styling**
+  - **UI Library**: Material-UI (MUI) v7. Advanced Components used:  MUI X Data Grid for product management panel.
+  - Tailwind CSS v4
+- **Routing**: React Router v7
+- **HTTP Client**: Axios
+- **Icons**: Material-UI Icons
+- **State Management**: React Context API
+
+## 📁 Project Structure
+
+```
+src/
+├── components/          # Reusable UI components
+│   ├── auth/           # Authentication-related components
+│   ├── layout/         # Layout components (Navbar, PageShell)
+│   └── styled/         # Styled components
+├── context/            # React Context providers
+├── pages/              # Page components
+├── services/           # API service configurations
+├── types/              # TypeScript type definitions
+├── assets/             # Static assets
+└── App.tsx            # Main application component
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 🛒 Product Features
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Product Types
+- **Herbs**: Medicinal and culinary herbs
+- **Spices**: Various spices and seasonings
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Product Information
+- Name and Latin name
+- Origin country
+- Organic certification status
+- Description
+- Multiple product variants with different:
+  - Package sizes (in grams)
+  - Pricing
+
+## 👨‍💼 Admin Features
+The admin panel features a sophisticated interface powered by a [MUI X Data Grid](https://mui.com/x/react-data-grid/) for product listing
+.<div align="left">
+  <img src="public/Herbs-e-commerce-Screenshot_Product_admin_panel.png" alt="Screenshot of product administration panel" width="300" />
+</div>
+
+**Built-in Features**: The table has built-in features such as sorting, filtering, column management, and pagination out of the box
+
+
+### Admin Capabilities
+Admin users can:
+- Create new products with multiple variants
+- Update existing product information
+- Manage product images
+- Control product availability
+- View and manage products through the advanced data grid interface
+
+## 🚦 Getting Started
+
+### Prerequisites
+
+- Node.js (v18 or higher)
+- npm
+
+### Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/malejaroti/herbs-shop-frontend.git
+cd herbs-shop-frontend
 ```
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Start the development server:
+```bash
+npm run dev
+```
+
+4. Open your browser and navigate to `http://localhost:5173`
+
+## 📜 Available Scripts
+
+- `npm run dev` - Start the development server
+- `npm run build` - Build the application for production
+- `npm run preview` - Preview the production build locally
+- `npm run lint` - Run ESLint for code quality checks
+
+## 🔧 Configuration
+
+### Environment Variables
+
+Create a `.env` file in the root directory and add:
+```env
+VITE_API_URL=your_backend_api_url
+```
+
+### Tailwind CSS
+Tailwind CSS v4 is configured with the Vite plugin for optimal performance.
+
+## 🗺️ Roadmap (Next Steps)
+- 🛒 Cart & Checkout (Stripe)
+- 👤 Account area (orders, addresses)
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 🐛 Issues
+
+If you encounter any issues, please file them in the [Issues](https://github.com/malejaroti/herbs-shop-frontend/issues) section of the repository.
+
+---
+
+Built with ❤️ for the sake of learning and for July, and all other herb and spice enthusiasts
